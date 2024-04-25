@@ -25,7 +25,7 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
         {
             CardId = Convert.ToInt32(document[Keys.CardId]),
             Neighborhood = document[Keys.Neighborhood],
-            Directions = JsonConvert.DeserializeObject<List<Directions>>(document[Keys.Directions].AsString()) ?? new List<Directions>()
+            Directions = JsonConvert.DeserializeObject<List<Direction>>(document[Keys.Directions].AsString()) ?? new List<Direction>()
         };
     }
 }

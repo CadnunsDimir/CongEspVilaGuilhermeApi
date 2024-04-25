@@ -23,25 +23,28 @@ namespace CongEspVilaGuilhermeApi.Controllers
         [HttpGet("{id}")]
         public Task<TerritoryCard?> Details(int id) => repository.GetCardAsync(id);
 
-        [HttpPost] 
-        [ValidateAntiForgeryToken]
-        public dynamic Create(TerritoryCard card)
+        [HttpPost]
+        public Task Create(TerritoryCard card)
         {
-            return new { };
+            throw new NotImplementedException();
         }
 
         [HttpPut]
-        [ValidateAntiForgeryToken]
-        public dynamic Edit(int id, TerritoryCard card)
+        public Task Edit(TerritoryCard card)
         {
-            return new { };
+            return repository.Update(card);
         }
 
-        [HttpDelete]
-        [ValidateAntiForgeryToken]
-        public dynamic Delete(int id)
+        [HttpPut("{cardId}/direction")]
+        public Task EditDirection(int cardId, Direction direction)
         {
-            return new { };
+            return repository.UpdateDirection(cardId, direction);
+        }
+
+        [HttpDelete("{id}")]
+        public Task Delete(int id)
+        {
+            return repository.Delete(id);
         }
     }
 }

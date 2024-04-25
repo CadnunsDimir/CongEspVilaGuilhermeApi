@@ -4,6 +4,6 @@
     {
         public int CardId { get; set; }
         public string Neighborhood { get; set; }
-        public List<Directions> Directions { get; set; }
+        public List<Direction> Directions { get; set; }
     }
 }

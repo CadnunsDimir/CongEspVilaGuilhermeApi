@@ -43,6 +43,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCongVilaguilhermeAuthentication();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
@@ -66,5 +68,6 @@ using (var scope = app.Services.CreateScope())
 app.UseCors();
 app.UseHttpsRedirection();
 app.UseCongVilaguilhermeAuthentication();
+app.UseExceptionHandler();
 app.MapControllers();
 app.Run();

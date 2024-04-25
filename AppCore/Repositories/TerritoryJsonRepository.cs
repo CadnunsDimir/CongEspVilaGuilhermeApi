@@ -52,7 +52,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
                         var streetName = fullAddress.Replace(houseNumber, string.Empty);
                         streetData = new[] { streetName, houseNumber };
                     }
-                    return new Directions
+                    return new Direction
                     {
                         StreetName = streetData[0],
                         HouseNumber = streetData[1].Trim(),
@@ -79,6 +79,21 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         }
 
         public Task Create(TerritoryCard card)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Update(TerritoryCard card)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Delete(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateDirection(int cardId, Direction direction)
         {
             throw new NotImplementedException();
         }
