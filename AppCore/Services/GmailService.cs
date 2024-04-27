@@ -13,7 +13,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
     public class GmailService : IEmailService
     {
         private readonly string senderEmail = Settings.EmailAddress;
-        private readonly string gmailPassword = Settings.EmailPassword;
+        private readonly string emailPassword = Settings.EmailPassword;
         private readonly string emailServerHost = Settings.EmailServerHost;
 
         public void NotifyNewUser(User user)
@@ -52,7 +52,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             //envia a mensagem
             var client = new SmtpClient(emailServerHost);
             client.EnableSsl = true;
-            NetworkCredential cred = new NetworkCredential(senderEmail, gmailPassword);
+            NetworkCredential cred = new NetworkCredential(senderEmail, emailPassword);
             client.Credentials = cred;
             client.Send(mail);
         }
