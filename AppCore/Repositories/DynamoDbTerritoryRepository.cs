@@ -47,7 +47,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         {
             var config = new ScanOperationConfig()
             {
-                AttributesToGet = new List<string> { cardIdKey },
+                AttributesToGet = new List<string> { cardIdKey, TerritoryCardMapper.Keys.IsDeleted },
                 Select = SelectValues.SpecificAttributes
             };
 
@@ -58,7 +58,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             do
             {
                 var documentList = await search.GetNextSetAsync();
-                resultList.AddRange(documentList.Select(x => Convert.ToInt32(x[cardIdKey])).ToList());
+                resultList.AddRange(documentList
+                    .Where(d=> 
+                        !d.Contains(TerritoryCardMapper.Keys.IsDeleted) || 
+                        !d[TerritoryCardMapper.Keys.IsDeleted].AsBoolean())
+                    .Select(x => Convert.ToInt32(x[cardIdKey])).ToList());
             } while (!search.IsDone);
 
             return resultList.Order().ToList();
@@ -101,7 +105,8 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             if (entityExists)
             {
                 var document = await Table.GetItemAsync(id);
-                await Table.DeleteItemAsync(document);
+                document[TerritoryCardMapper.Keys.IsDeleted] = true;
+                await Table.UpdateItemAsync(document);
                 return;
             }
             throw new InvalidOperationException();

@@ -11,7 +11,9 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             public static readonly string CardId = "card_id";
             internal static readonly string Neighborhood = "neighborhood";
             internal static readonly string Directions  = "directions";
+            internal static readonly string IsDeleted = "is_deleted";
         }
+
         public Document ToDynamoDocument(TerritoryCard card)    
         {
             var document = new Document();

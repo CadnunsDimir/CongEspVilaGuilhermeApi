@@ -4,7 +4,6 @@ using CongEspVilaGuilhermeApi.AppCore.Services;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Services;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
-using Microsoft.AspNetCore.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +28,8 @@ builder.Services.AddCors(options =>
             });
     });
 
+builder.Services.AddMemoryCache();
+
 // Add services to the container.
 builder.Services.AddScoped<IEmailService, GmailService>();
 builder.Services.AddScoped<IUserRepository, DynamoDbUserRepository>();
@@ -37,6 +38,8 @@ builder.Services.AddScoped<TerritoryJsonRepository>();
 builder.Services.AddScoped<DynamoDbTerritoryRepository>();
 builder.Services.AddScoped<ITerritoryRepository, DynamoDbTerritoryRepository>();
 builder.Services.AddScoped<TerritoryRepositoryValidationService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+builder.Services.AddScoped<TerritoryUseCases>();
 builder.Services.AddScoped<UserUseCases>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -58,15 +61,14 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var userUseCases = scope.ServiceProvider.GetService<UserUseCases>();
-    await userUseCases.InitializeAdminUserAsync();
+    await userUseCases!.InitializeAdminUserAsync();
 
     var repositoryValidator = scope.ServiceProvider.GetService<TerritoryRepositoryValidationService>();
-    await repositoryValidator.ValidateDataOnDynamoDb();
+    await repositoryValidator!.ValidateDataOnDynamoDb();
 }
 
 
 app.UseCors();
-app.UseHttpsRedirection();
 app.UseCongVilaguilhermeAuthentication();
 app.UseExceptionHandler();
 app.MapControllers();
