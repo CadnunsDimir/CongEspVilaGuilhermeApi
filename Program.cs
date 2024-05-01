@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 Settings.LoadFromConfigFiles(builder.Configuration);
 
 var originAllowed = new string[]{
-    "localhost", "127.0.0.1"
+    "localhost", "127.0.0.1", Settings.FrontAppHost
 };
 
 builder.Services.AddCors(options =>
@@ -20,8 +20,9 @@ builder.Services.AddCors(options =>
             {
                 policy.SetIsOriginAllowed(origin => {
                     var host = new Uri(origin).Host;
-                    Console.WriteLine($"[SetIsOriginAllowed] host: {host}");
-                    return originAllowed.Contains(host);
+                    var allowedHost = originAllowed.Contains(host);
+                    Console.WriteLine($"[SetIsOriginAllowed] host: {host}, allowed: {allowedHost}");
+                    return allowedHost;
                 })
                 .AllowAnyHeader()
                 .AllowAnyMethod();

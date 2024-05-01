@@ -11,6 +11,11 @@ internal class GlobalExceptionHandler : IExceptionHandler
             Title = exception.GetType().Name.Replace("Exception", string.Empty),
         };
 
+        if(error.Title == "Argument")
+        {
+            error.Title += $", {exception.Message}";
+        }
+
         await httpContext.Response.WriteAsJsonAsync(error, cancellationToken);
 
         return true;

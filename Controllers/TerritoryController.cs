@@ -21,22 +21,27 @@ namespace CongEspVilaGuilhermeApi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task<List<int>> Index() => useCases.GetCardsAsync();
 
         [HttpGet("{id}")]
         public Task<TerritoryCard?> Details(int id) => useCases.GetCardAsync(id);
 
         [HttpPost]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task Create(TerritoryCard card) => useCases.Create(card); 
 
         [HttpPut]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task Edit(TerritoryCard card) => useCases.Update(card);
 
         [HttpPut("{cardId}/direction")]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task EditDirection(int cardId, Direction direction) => 
             useCases.UpdateDirection(cardId, direction);
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task Delete(int id) => useCases.Delete(id);
     }
 }

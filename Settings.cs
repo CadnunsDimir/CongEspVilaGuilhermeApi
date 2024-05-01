@@ -10,6 +10,7 @@ namespace CongEspVilaGuilhermeApi
         public static string TokenSecret { get; private set; } = string.Empty;
         public static string DynamoDBAccessKey { get; private set; } = string.Empty;
         public static string DynamoDBSecretKey { get; private set; } = string.Empty;
+        public static string FrontAppHost { get; private set; } = string.Empty;
 
         internal static void LoadFromConfigFiles(ConfigurationManager configuration)
         {
@@ -20,6 +21,7 @@ namespace CongEspVilaGuilhermeApi
             TokenSecret = configuration["Auth:TokenSecret"]!;
             DynamoDBAccessKey = configuration["DynamoDB:accessKey"]!;
             DynamoDBSecretKey = configuration["DynamoDB:secretKey"]!;
+            FrontAppHost = configuration[nameof(FrontAppHost)]!;
         }
     }
 }

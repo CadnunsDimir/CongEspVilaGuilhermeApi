@@ -48,10 +48,16 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private static Claim[] GetClaims(User user) => [
-            new (ClaimTypes.Name, user.UserName),
-            new (ClaimTypes.Role, user.Role),
-            new (ClaimTypes.Email, user.Email)
-        ];
+        private static Claim[] GetClaims(User user)
+        {
+            var list = new List<Claim>(){
+                new (ClaimTypes.Name, user.UserName),
+                new (ClaimTypes.Email, user.Email)
+            };
+
+            list.AddRange(user.Role.Split(',').Select(x=> new Claim(ClaimTypes.Role,x)));
+
+            return list.ToArray();
+        }
     }
 }

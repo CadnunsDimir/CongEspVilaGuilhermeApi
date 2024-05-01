@@ -3,6 +3,7 @@ using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Services;
 using CongEspVilaGuilhermeApi.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CongEspVilaGuilhermeApi.Domain.UseCases
 {
@@ -64,6 +65,23 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
         {
             var user = await repository.GetByUserName(userName);
             return user != null ? tokenService.GenerateToken(user) : null;
+        }
+
+        public async Task AddRole(string userName, string role)
+        {
+            if(RoleTypes.IsValid(role))
+            {
+                var user = await repository.GetByUserName(userName);
+                if(user != null && !user.Role.Contains(role))
+                {
+                    user.Role = $"{user.Role},{role}";
+                    await repository.Update(user);
+                }
+            } 
+            else 
+            {
+                throw new ArgumentException("ValidTypes: " + RoleTypes.ValidRolesSeparedByColma());
+            }
         }
     }
 }

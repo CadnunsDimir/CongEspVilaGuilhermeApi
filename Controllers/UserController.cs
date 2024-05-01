@@ -1,5 +1,6 @@
 ﻿using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Extensions;
 using System.Net;
@@ -37,5 +38,13 @@ namespace CongEspVilaGuilhermeApi.Controllers
 
             return StatusCode(statusCode, response);
         }
+
+        [HttpGet("{userName}/role/{role}")]
+        [Authorize(Roles = "Admin")]
+        public Task AddRole(string userName, string role)
+        {
+            return useCases.AddRole(userName, role);       
+        }
+
     }
 }
