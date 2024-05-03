@@ -1,6 +1,7 @@
 
 
 using System.Runtime.Serialization;
+using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Exceptions;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
@@ -73,5 +74,17 @@ public class TerritoryUseCases
     {
         await repository.Delete(id);
         await cache.Clear(TerritoryCardCacheKey(id));
+    }
+
+    internal async Task<Guid> GetShareableId(int cardId)
+    {
+        var id = Guid.NewGuid();
+        await repository.UpdateShareableIdAsync(cardId, id);
+        return id;
+    }
+
+    internal Task<TerritoryCard?> GetCardByShareId(Guid cardId)
+    {
+        return repository.GetByShareId(cardId);
     }
 }

@@ -1,18 +1,18 @@
-﻿using CongEspVilaGuilhermeApi.Domain.Entities;
+﻿using CongEspVilaGuilhermeApi.AppCore.Models;
+using CongEspVilaGuilhermeApi.AppCore.Services;
+using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using Newtonsoft.Json;
 using ThirdParty.Json.LitJson;
 
 namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 {
-    public class TerritoryJsonRepository : ITerritoryRepository
+    public class TerritoryJsonRepository : LoadFileService, ITerritoryRepository 
     {
-        private readonly IWebHostEnvironment environment;
         private List<TerritoryCard>? cards = null;
 
-        public TerritoryJsonRepository(IWebHostEnvironment hostingEnvironment)
+        public TerritoryJsonRepository(IWebHostEnvironment hostingEnvironment): base(hostingEnvironment)
         {
-            environment = hostingEnvironment;
         }
 
         private List<TerritoryCard> LoadJson()
@@ -20,9 +20,8 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             if (cards == null)
             {
                 cards = new List<TerritoryCard>();
-                var rootPath = environment.ContentRootPath;
-                var fullPath = Path.Combine(rootPath, "territorio.json");
-                var jsonData = File.Exists(fullPath) ? File.ReadAllText(fullPath) : "[]";
+
+                var jsonData = LoadFileAsString("territorio.json");
 
                 if (!string.IsNullOrWhiteSpace(jsonData))
                 {
@@ -94,6 +93,26 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         }
 
         public Task UpdateDirection(int cardId, Direction direction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<TerritoryCard>> GetAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateMany(List<TerritoryCard> territories)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateShareableIdAsync(int cardId, Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TerritoryCard?> GetByShareId(Guid cardId)
         {
             throw new NotImplementedException();
         }

@@ -1,4 +1,6 @@
-﻿using CongEspVilaGuilhermeApi.Domain.Entities;
+﻿using CongEspVilaGuilhermeApi.AppCore.Models;
+using CongEspVilaGuilhermeApi.AppCore.Services;
+using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
 using Microsoft.AspNetCore.Authorization;
@@ -11,13 +13,15 @@ namespace CongEspVilaGuilhermeApi.Controllers
     [Authorize]
     public class TerritoryController : ControllerBase
     {
-        private readonly ITerritoryRepository repository;
         private readonly TerritoryUseCases useCases;
+        private readonly TerritoryRepositoryValidationService repositoryValidator;
 
-        public TerritoryController(ITerritoryRepository repository, TerritoryUseCases useCases)
+        public TerritoryController(
+            TerritoryUseCases useCases,
+            TerritoryRepositoryValidationService repositoryValidator)
         {
-            this.repository = repository;
             this.useCases = useCases;
+            this.repositoryValidator = repositoryValidator;
         }
 
         [HttpGet]
@@ -40,8 +44,36 @@ namespace CongEspVilaGuilhermeApi.Controllers
         public Task EditDirection(int cardId, Direction direction) => 
             useCases.UpdateDirection(cardId, direction);
 
+        [HttpGet("{cardId}/share")]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
+        public async Task<ShareTerritoryCard> Share(int cardId)
+        {
+            Guid id = await useCases.GetShareableId(cardId);
+            return new ShareTerritoryCard
+            {
+                TemporaryId = id
+            };
+        }
+
+        [HttpGet("{cardId}/public")]
+        [AllowAnonymous]
+        public Task<TerritoryCard?> Share(Guid cardId) => useCases.GetCardByShareId(cardId);
+
         [HttpDelete("{id}")]
         [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task Delete(int id) => useCases.Delete(id);
+
+        [HttpGet("sync_tsv")]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
+        public dynamic SyncTsv()
+        {
+            _ = repositoryValidator.UpdateDbUsingOnlineSheetAsync();
+            return new
+            {
+                message = "Update started"
+            };
+        }
+
+
     }
 }

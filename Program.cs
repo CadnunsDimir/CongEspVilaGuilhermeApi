@@ -42,6 +42,7 @@ builder.Services.AddScoped<TerritoryRepositoryValidationService>();
 builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<TerritoryUseCases>();
 builder.Services.AddScoped<UserUseCases>();
+builder.Services.AddScoped<OnlineTsvSyncService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -62,9 +63,8 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var userUseCases = scope.ServiceProvider.GetService<UserUseCases>();
-    await userUseCases!.InitializeAdminUserAsync();
-
     var repositoryValidator = scope.ServiceProvider.GetService<TerritoryRepositoryValidationService>();
+    await userUseCases!.InitializeAdminUserAsync();    
     await repositoryValidator!.ValidateDataOnDynamoDb();
 }
 
