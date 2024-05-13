@@ -39,14 +39,28 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     var card = cards.FirstOrDefault(x => x.CardId == cardId) ?? new TerritoryCard
                     {
                         CardId = cardId,
-                        Neighborhood = neighboorhood,
+                        Neighborhood = neighboorhood.Trim(),
                         Directions = new List<Direction>()
                     };
 
-                    var fullDirection = values[fullDirectionKey].Split(',');
-                    var streetName = fullDirection.FirstOrDefault()!;
-                    var houseNumber = fullDirection.LastOrDefault()!.Trim();
+                    var adressData = values[fullDirectionKey];
 
+                    var streetName = adressData;
+                    var houseNumber = "S/N";
+
+                    if (adressData.Contains(','))
+                    {
+                        var fullDirection = adressData.Split(',');
+                        streetName = fullDirection.FirstOrDefault()!.Trim();
+                        houseNumber = fullDirection.LastOrDefault()!.Trim();
+                    }
+                    else
+                    {
+                        var fullDirection = adressData.Split(' ');
+                        houseNumber = fullDirection.LastOrDefault() ?? houseNumber;
+                        streetName = streetName.Replace(houseNumber, string.Empty);                    
+                    }
+                    
                     card.Directions.Add(new Direction {
                         StreetName = streetName,
                         HouseNumber = houseNumber,

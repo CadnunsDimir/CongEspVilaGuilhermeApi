@@ -1,6 +1,7 @@
 ﻿using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.AppCore.Services;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
 using Microsoft.AspNetCore.Authorization;
@@ -74,6 +75,8 @@ namespace CongEspVilaGuilhermeApi.Controllers
             };
         }
 
+        [HttpGet("full_map")]
+        public Task<List<TerritoryMapMarkers>> FullMap() => useCases.GetFullMap();
 
     }
 }

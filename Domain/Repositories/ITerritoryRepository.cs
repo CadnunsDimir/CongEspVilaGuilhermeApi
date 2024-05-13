@@ -1,5 +1,6 @@
 ﻿using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Models;
 
 namespace CongEspVilaGuilhermeApi.Domain.Repositories
 {
@@ -15,5 +16,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         Task UpdateMany(List<TerritoryCard> territories);
         Task UpdateShareableIdAsync(int cardId, Guid id);
         Task<TerritoryCard?> GetByShareId(Guid cardId);
+        Task<List<TerritoryMapMarkers>> GetFullMapMarkers();
     }
 }

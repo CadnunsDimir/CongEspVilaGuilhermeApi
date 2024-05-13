@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DocumentModel;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using Newtonsoft.Json;
 
 namespace CongEspVilaGuilhermeApi.Services.Mappers
@@ -26,9 +27,31 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
 
         public TerritoryCard ToEntity(Document document) => new TerritoryCard
         {
-            CardId = Convert.ToInt32(document[Keys.CardId]),
+            CardId = MapCardId(document),
             Neighborhood = document[Keys.Neighborhood],
-            Directions = JsonConvert.DeserializeObject<List<Direction>>(document[Keys.Directions].AsString()) ?? new List<Direction>()
+            Directions = MapDirections(document)
         };
+
+        public int MapCardId(Document document) => Convert.ToInt32(document[Keys.CardId]);
+        public List<Direction> MapDirections(Document document) => JsonConvert.DeserializeObject<List<Direction>>(document[Keys.Directions].AsString()) ?? new List<Direction>();
+
+        public List<TerritoryMapMarkers> ToMapMarkers(List<Document> documentList)
+        {
+            return documentList.SelectMany(doc =>
+            {
+                var cardId = MapCardId(doc);
+                return MapDirections(doc)
+                    
+                    .Select((d,i)=> new { index = i + 1, d.Lat, d.Long })
+                    .Where(x=> x.Lat !=null && x.Long != null)
+                    .Select(d=> new TerritoryMapMarkers
+                    {
+                        CardId = cardId,
+                        Lat = (float)d.Lat!,
+                        Long = (float)d.Long!,
+                        OrderPosition = d.index
+                    });
+            }).ToList();
+        }
     }
 }

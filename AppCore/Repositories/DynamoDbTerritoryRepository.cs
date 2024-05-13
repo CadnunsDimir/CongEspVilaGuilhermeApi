@@ -2,6 +2,7 @@
 using Amazon.DynamoDBv2.Model;
 using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Services.Mappers;
 using Newtonsoft.Json.Linq;
@@ -189,5 +190,23 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         }
 
         public Task<TerritoryCard?> GetByShareId(Guid cardId) => First(queryBy(shareIdKey,cardId.ToString(), SelectValues.AllAttributes));
+
+        public async Task<List<TerritoryMapMarkers>> GetFullMapMarkers()
+        {
+            var query = Table.Scan(new ScanOperationConfig()
+            {
+                Select = SelectValues.SpecificAttributes,
+                AttributesToGet = new List<string>{ cardIdKey, TerritoryCardMapper.Keys.Directions}
+            });
+
+            var resultList = new List<TerritoryMapMarkers>();
+            do
+            {
+                var documentList = await query.GetNextSetAsync();
+                resultList.AddRange(mapper.ToMapMarkers(documentList));
+            } while (!query.IsDone);
+
+            return resultList;
+        }
     }
 }

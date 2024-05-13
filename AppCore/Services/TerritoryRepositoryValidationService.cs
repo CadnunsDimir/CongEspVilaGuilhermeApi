@@ -41,14 +41,16 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
         public async Task<string> UpdateDbUsingOnlineSheetAsync()
         {
-            var cardsFromGoogleSheet = await onlineTsvSync.GetCardFromOnlineSheetAsync();
-            Console.WriteLine(cardsFromGoogleSheet);
+            var cardsFromOnlineSheet = await onlineTsvSync.GetCardFromOnlineSheetAsync();
             var memoryDb = await dynamoDb.GetAll();
+            var adressesBook = memoryDb.SelectMany(x=> x.Directions)
+                .Where(x=> x.Lat != null && x.Long != null)
+                .ToList();
             var itensToUpdate = new List<TerritoryCard>();
             var changes = 0;
             var additions = 0;
             var deletions = 0;
-            foreach (var tsvCard in cardsFromGoogleSheet)
+            foreach (var tsvCard in cardsFromOnlineSheet)
             {
                 var cardDb = memoryDb.FirstOrDefault(x=> x.CardId == tsvCard.CardId);
                 if (cardDb == null)
@@ -61,7 +63,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 {
                     tsvCard.Directions.ForEach(x =>
                     {
-                        var directionDb = cardDb.Directions.FirstOrDefault(db =>
+                        var directionDb = adressesBook.FirstOrDefault(db =>
                             db.StreetName.Contains(x.StreetName) &&
                             db.HouseNumber.Contains(x.HouseNumber) &&
                             db.Lat != null);
@@ -70,11 +72,6 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                         {
                             x.Lat = directionDb.Lat;
                             x.Long = directionDb.Long;
-                        }
-                        else
-                        {
-                            changes++;
-                            additions++;
                         }
                     });
 
@@ -85,8 +82,9 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
                     changes += directionsBeingRemoved;
                     deletions += directionsBeingRemoved;
-               
+
                     cardDb.Directions = tsvCard.Directions;
+                    cardDb.Neighborhood = tsvCard.Neighborhood;
                     itensToUpdate.Add(cardDb);
                 }
             }

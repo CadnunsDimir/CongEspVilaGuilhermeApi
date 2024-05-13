@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Exceptions;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Services;
 
@@ -37,6 +38,7 @@ public class TerritoryUseCases
         var errors = card.CheckErrors();
         if (errors.Length == 0)
         {
+            _ = ClearCacheMap();
             return repository.Create(card);
         }
         throw new DomainEntityException(errors);
@@ -46,6 +48,7 @@ public class TerritoryUseCases
     {
         await repository.Update(card);
         await cache.SetAsync(TerritoryCardCacheKey(card.CardId), card);
+        await ClearCacheMap();
     }
 
     private string TerritoryCardCacheKey(int cardId) => typeof(TerritoryCard).Name + "_" + cardId;
@@ -68,12 +71,14 @@ public class TerritoryUseCases
     {
         await repository.UpdateDirection(cardId, direction);
         await cache.Clear(TerritoryCardCacheKey(cardId));
+        await ClearCacheMap();
     }
 
     public async Task Delete(int id)
     {
         await repository.Delete(id);
         await cache.Clear(TerritoryCardCacheKey(id));
+        await ClearCacheMap();
     }
 
     internal async Task<Guid> GetShareableId(int cardId)
@@ -86,5 +91,21 @@ public class TerritoryUseCases
     internal Task<TerritoryCard?> GetCardByShareId(Guid cardId)
     {
         return repository.GetByShareId(cardId);
+    }
+
+    public async Task<List<TerritoryMapMarkers>> GetFullMap()
+    {
+        var data = await cache.GetAsync(nameof(repository.GetFullMapMarkers), async config => {
+            config.SlidingExpiration = CacheExpiration;
+            var data = await repository.GetFullMapMarkers();
+            return data;
+        });
+
+        return data!;
+    }
+
+    private async Task ClearCacheMap()
+    {
+        await cache.Clear(nameof(repository.GetFullMapMarkers));
     }
 }

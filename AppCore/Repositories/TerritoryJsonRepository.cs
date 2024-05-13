@@ -1,6 +1,7 @@
 ﻿using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.AppCore.Services;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using Newtonsoft.Json;
 using ThirdParty.Json.LitJson;
@@ -113,6 +114,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         }
 
         public Task<TerritoryCard?> GetByShareId(Guid cardId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<TerritoryMapMarkers>> GetFullMapMarkers()
         {
             throw new NotImplementedException();
         }
