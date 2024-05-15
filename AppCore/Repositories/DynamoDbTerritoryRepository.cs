@@ -20,10 +20,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         private Search queryBy(string key, string value, SelectValues select, List<string>? attributes = null)
         {
             var scanFilter = new ScanFilter();
-            scanFilter.AddCondition(key, ScanOperator.Equal, new List<AttributeValue>
+
+           scanFilter.AddCondition(key, ScanOperator.Equal, new List<AttributeValue>
             {
                 new AttributeValue(value)
-            });
+            });      
 
             if (select == SelectValues.SpecificAttributes && attributes == null)
                 throw new ArgumentNullException(nameof(attributes));
@@ -158,11 +159,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             await Update(card!);
         }
 
-        public async Task<List<TerritoryCard>> GetAll()
+        public Task<List<TerritoryCard>> GetAll()
+        {
+            return GetAllBy();
+        }
+
+        private async Task<List<TerritoryCard>> GetAllBy(ScanFilter? filter = null)
         {
             var config = new ScanOperationConfig()
             {
-                Select = SelectValues.AllAttributes
+                Select = SelectValues.AllAttributes,
+                Filter = filter
             };
 
             var list = await RunQueryAsync(Table.Scan(config));
@@ -207,6 +214,41 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             } while (!query.IsDone);
 
             return resultList;
+        }
+
+        public async Task<int> CountAllDirections()
+        {
+            await UpdateDirectionsSums();
+
+            var countKey = TerritoryCardMapper.Keys.DirectionsCount;
+
+            var scanFilter = new ScanFilter();
+            scanFilter.AddCondition(countKey, ScanOperator.IsNotNull);
+            scanFilter.AddCondition(TerritoryCardMapper.Keys.IsDeleted, ScanOperator.IsNull);
+            
+            var config = new ScanOperationConfig()
+            {
+                AttributesToGet = new List<string> { countKey },
+                Filter = scanFilter,
+                Select = SelectValues.SpecificAttributes
+            };
+
+            Search search = Table.Scan(config);
+            var response = new List<int>();
+            do
+            {
+                var documentList = await search.GetNextSetAsync();
+                response.AddRange(documentList.Select(mapper.ToCount));
+            } while (!search.IsDone);
+            return response.Sum();
+        }
+
+        private async Task UpdateDirectionsSums()
+        {
+            ScanFilter filter = new ScanFilter();
+            filter.AddCondition(TerritoryCardMapper.Keys.DirectionsCount, ScanOperator.IsNull);
+            var result  = await GetAllBy(filter);
+            result.ForEach(async x => await Update(x));
         }
     }
 }

@@ -76,7 +76,7 @@ namespace CongEspVilaGuilhermeApi.Controllers
         }
 
         [HttpGet("full_map")]
-        public Task<List<TerritoryMapMarkers>> FullMap() => useCases.GetFullMap();
+        public Task<FullMap> FullMap() => useCases.GetFullMap();
 
     }
 }

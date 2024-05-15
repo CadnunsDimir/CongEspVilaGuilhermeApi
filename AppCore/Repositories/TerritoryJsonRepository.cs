@@ -122,5 +122,10 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<int> CountAllDirections()
+        {
+            return Task.FromResult(LoadJson().Sum(x=> x.Directions.Count));
+        }
     }
 }

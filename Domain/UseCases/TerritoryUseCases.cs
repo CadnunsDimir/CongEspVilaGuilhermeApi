@@ -93,7 +93,7 @@ public class TerritoryUseCases
         return repository.GetByShareId(cardId);
     }
 
-    public async Task<List<TerritoryMapMarkers>> GetFullMap()
+    public async Task<FullMap> GetFullMap()
     {
         var data = await cache.GetAsync(nameof(repository.GetFullMapMarkers), async config => {
             config.SlidingExpiration = CacheExpiration;
@@ -101,7 +101,16 @@ public class TerritoryUseCases
             return data;
         });
 
-        return data!;
+        var count = await cache.GetAsync(nameof(repository.CountAllDirections), async config => {
+            config.SlidingExpiration = CacheExpiration;
+            var data = await repository.CountAllDirections();
+            return data.ToString();
+        });
+
+        return new FullMap {
+            MapMarkers = data!,
+            TotalAdresses = Convert.ToInt32(count)
+        };
     }
 
     private async Task ClearCacheMap()

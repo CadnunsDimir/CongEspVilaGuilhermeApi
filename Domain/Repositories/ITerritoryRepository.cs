@@ -17,5 +17,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         Task UpdateShareableIdAsync(int cardId, Guid id);
         Task<TerritoryCard?> GetByShareId(Guid cardId);
         Task<List<TerritoryMapMarkers>> GetFullMapMarkers();
+        Task<int> CountAllDirections();
     }
 }

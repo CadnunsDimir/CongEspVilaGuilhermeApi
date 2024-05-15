@@ -1,4 +1,5 @@
 ﻿using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.DynamoDBv2.Model;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Models;
 using Newtonsoft.Json;
@@ -14,6 +15,8 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             internal static readonly string Directions  = "directions";
             internal static readonly string IsDeleted = "is_deleted";
             internal static readonly string ShareId = "share_id";
+
+            public static string DirectionsCount = "directions_count";
         }
 
         public Document ToDynamoDocument(TerritoryCard card)    
@@ -22,6 +25,7 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             document[Keys.CardId] = card.CardId;
             document[Keys.Neighborhood] = card.Neighborhood;
             document[Keys.Directions] = JsonConvert.SerializeObject(card.Directions);
+            document[Keys.DirectionsCount] = card.Directions.Count;
             return document;
         }
 
@@ -52,6 +56,11 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
                         OrderPosition = d.index
                     });
             }).ToList();
+        }
+
+        public int ToCount(Document doc)
+        {
+            return doc.ContainsKey(Keys.DirectionsCount) ? Convert.ToInt32(doc[Keys.DirectionsCount]) : 0;
         }
     }
 }
