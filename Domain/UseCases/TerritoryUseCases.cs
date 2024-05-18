@@ -107,14 +107,23 @@ public class TerritoryUseCases
             return data.ToString();
         });
 
+        var cardsToCheck = await cache.GetAsync(nameof(repository.GetCardsToFixCoordinates), async config => {
+            config.SlidingExpiration = CacheExpiration;
+            var data = await repository.GetCardsToFixCoordinates();
+            return data;
+        });
+
         return new FullMap {
             MapMarkers = data!,
-            TotalAdresses = Convert.ToInt32(count)
+            TotalAdresses = Convert.ToInt32(count),
+            CheckCoordinatesOnCards = cardsToCheck!
         };
     }
 
     private async Task ClearCacheMap()
     {
         await cache.Clear(nameof(repository.GetFullMapMarkers));
+        await cache.Clear(nameof(repository.GetCardsToFixCoordinates));
+        await cache.Clear(nameof(repository.CountAllDirections));
     }
 }

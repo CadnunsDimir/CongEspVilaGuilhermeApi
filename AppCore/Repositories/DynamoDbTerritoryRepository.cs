@@ -80,13 +80,19 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             return First(queryById(id, SelectValues.AllAttributes));
         }
 
-        public async Task<List<int>> GetCardsAsync()
+        public Task<List<int>> GetCardsAsync()=> GetCards();
+
+        private async Task<List<int>> GetCards(ScanFilter? filter = null)
         {
             var config = new ScanOperationConfig()
             {
                 AttributesToGet = new List<string> { cardIdKey, TerritoryCardMapper.Keys.IsDeleted },
                 Select = SelectValues.SpecificAttributes
             };
+
+            if(filter != null){
+                config.Filter = filter;
+            }
 
             Search search = Table.Scan(config);
 
@@ -168,9 +174,12 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         {
             var config = new ScanOperationConfig()
             {
-                Select = SelectValues.AllAttributes,
-                Filter = filter
+                Select = SelectValues.AllAttributes
             };
+
+            if(filter != null){
+                config.Filter = filter;
+            }
 
             var list = await RunQueryAsync(Table.Scan(config));
             return list;
@@ -243,12 +252,25 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             return response.Sum();
         }
 
-        private async Task UpdateDirectionsSums()
+        private ScanFilter Where(string key, ScanOperator op, string? value = null)
         {
             ScanFilter filter = new ScanFilter();
-            filter.AddCondition(TerritoryCardMapper.Keys.DirectionsCount, ScanOperator.IsNull);
-            var result  = await GetAllBy(filter);
-            result.ForEach(async x => await Update(x));
+            if(value != null) 
+                filter.AddCondition(key, op, value);
+            else filter.AddCondition(key,op);
+            return filter;
         }
+
+        private async Task UpdateDirectionsSums()
+        {            
+            var result  = await GetAllBy(Where(TerritoryCardMapper.Keys.DirectionsCount,  ScanOperator.IsNull));
+            result.ForEach(async x => await Update(x));
+        }        
+
+        public Task<List<int>> GetCardsToFixCoordinates()
+        {
+            var invalidCoordinates = "\"Lat\":null";
+            return GetCards(Where(TerritoryCardMapper.Keys.Directions, ScanOperator.Contains, invalidCoordinates));
+        }        
     }
 }

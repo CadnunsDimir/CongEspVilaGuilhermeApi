@@ -41,11 +41,15 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
         public async Task<string> UpdateDbUsingOnlineSheetAsync()
         {
+            Console.WriteLine("[UPDate TSV] init");
             var cardsFromOnlineSheet = await onlineTsvSync.GetCardFromOnlineSheetAsync();
+            Console.WriteLine("[UPDate TSV] file loaded");
             var memoryDb = await dynamoDb.GetAll();
+            Console.WriteLine("[UPDate TSV] all cards on db loaded");
             var adressesBook = memoryDb.SelectMany(x=> x.Directions)
                 .Where(x=> x.Lat != null && x.Long != null)
                 .ToList();
+            Console.WriteLine("[UPDate TSV] adressBook created");
             var itensToUpdate = new List<TerritoryCard>();
             var changes = 0;
             var additions = 0;
@@ -58,6 +62,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     changes += tsvCard.Directions.Count;
                     additions += tsvCard.Directions.Count;
                     await dynamoDb.Create(tsvCard);
+                    Console.WriteLine("[UPDate TSV] new card");
                 }
                 else
                 {
@@ -86,8 +91,10 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     cardDb.Directions = tsvCard.Directions;
                     cardDb.Neighborhood = tsvCard.Neighborhood;
                     itensToUpdate.Add(cardDb);
+                    Console.WriteLine("[UPDate TSV] card updated, cardId= " +tsvCard.CardId);
                 }
             }
+             Console.WriteLine("[UPDate TSV] lets update on db");
             await dynamoDb.UpdateMany(itensToUpdate);
             var successMessage = $"[TsvOnline] the database is up to date!";
 

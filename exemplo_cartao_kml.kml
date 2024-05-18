@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+    <Document>
+        <Placemark>
+            <Style>
+                <IconStyle>
+                    <color>#cc89c73d</color>
+                    <scale>1.0</scale>
+                    <Icon>
+                        <href><![CDATA[http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png]]></href>
+                    </Icon>
+                </IconStyle>
+            </Style>
+            <name><![CDATA[Rua de Teste, 1234]]></name>
+            <Point>
+                <coordinates>
+                -46.598440669476986,-23.496631404625166,0
+                </coordinates>
+            </Point>
+            <Tag>
+                <UseImage>0</UseImage>
+                <AlwaysVisible>1</AlwaysVisible>
+                <textColor>#ff000000</textColor>
+                <bgColor>#00000000</bgColor>
+                <outlinecolor>#ffffffff</outlinecolor>
+                <bold>false</bold>
+            </Tag>
+        </Placemark>
+    </Document>
+</kml>

@@ -127,5 +127,13 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         {
             return Task.FromResult(LoadJson().Sum(x=> x.Directions.Count));
         }
+
+        public Task<List<int>> GetCardsToFixCoordinates()
+        {
+            return Task.FromResult(LoadJson()
+                .Where(x=> x.Directions.Any(d=> d.Lat == null))
+                .Select(x=>x.CardId)
+                .ToList());
+        }
     }
 }

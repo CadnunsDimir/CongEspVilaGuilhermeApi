@@ -18,5 +18,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         Task<TerritoryCard?> GetByShareId(Guid cardId);
         Task<List<TerritoryMapMarkers>> GetFullMapMarkers();
         Task<int> CountAllDirections();
+        Task<List<int>> GetCardsToFixCoordinates();
     }
 }
