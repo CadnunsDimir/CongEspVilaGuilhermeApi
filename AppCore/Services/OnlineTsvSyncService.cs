@@ -20,7 +20,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         {
             var lines = tsvFileContent.Split('\n');
             var ignoreLines = new string[] {
-                "DIRECCION", " ", "\t"
+                "DIRECCION", " ", "\t", "Tarjeta", "TARJETA"
             };
             var cards = new List<TerritoryCard>();
 
@@ -36,12 +36,20 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     var values = line.Split('\t');
                     var cardId = Convert.ToInt32(values[cardIdKey].ToLower().Replace("tarjeta ", string.Empty));
                     var neighboorhood = values[neighboorhoodKey];
-                    var card = cards.FirstOrDefault(x => x.CardId == cardId) ?? new TerritoryCard
+
+                    var existingCard = cards.FirstOrDefault(x => x.CardId == cardId);
+
+                    var card = existingCard ?? new TerritoryCard
                     {
                         CardId = cardId,
                         Neighborhood = neighboorhood.Trim(),
                         Directions = new List<Direction>()
                     };
+
+                    if (existingCard == null)
+                    {
+                        Console.WriteLine("[getCardListFromTSVFileContent] creating card_" + card.CardId);
+                    }
 
                     var adressData = values[fullDirectionKey];
 
@@ -72,6 +80,8 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     }
                 }
             }
+
+            Console.WriteLine($"[getCardListFromTSVFileContent] totals: {cards.Count} cards and {cards.Sum(x=>x.Directions.Count)} directions");
             return cards;
         }
 
