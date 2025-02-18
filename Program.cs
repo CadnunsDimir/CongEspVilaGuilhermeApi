@@ -43,6 +43,8 @@ builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<TerritoryUseCases>();
 builder.Services.AddScoped<UserUseCases>();
 builder.Services.AddScoped<OnlineTsvSyncService>();
+builder.Services.AddScoped<LifeAndMinistryProgramService>();
+builder.Services.AddScoped<ILifeAndMinistryRepository, LifeAndMinistryDynamoDbRepository>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

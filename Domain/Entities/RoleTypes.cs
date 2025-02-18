@@ -3,8 +3,9 @@
 
 public class RoleTypes
 {
-    public static string TerritoryServant = "TerritoryServant";
-    public static string Admin = "Admin";
+    public const string LifeAndMinistryAdmins = "LifeAndMinistryAdmins";
+    public const string TerritoryServant = "TerritoryServant";
+    public const string Admin = "Admin";
 
     public static readonly string[] ValidRoles = new []
     {
