@@ -10,10 +10,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
     public class LifeAndMinistryProgramService
     {
         private ILifeAndMinistryRepository repository;
+        private WebContentService browser;
+        private DateTime[] memorialWeeksMondays = new[] { 
+            new DateTime(2025, 04, 7),
+            new DateTime(2026, 03, 30),
+            new DateTime(2027, 03, 22),
+        };
 
         public LifeAndMinistryProgramService(ILifeAndMinistryRepository repository)
         {
-            this.repository = repository; 
+            this.repository = repository;
+            this.browser = new WebContentService();
         }
         public async Task<LifeAndMinistryWeek> GetProgramByDate(DateTime date)
         {
@@ -30,35 +37,23 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         private async Task<LifeAndMinistryWeek> BuildNew(string weekId)
         {
             var url = $"https://wol.jw.org/es/wol/d/r4/lp-s/20{weekId}";
-            using HttpClient client = new();
-            var html = await client.GetStringAsync(url);
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            var html = await browser.GetAsync(url);
 
-            var node = htmlDoc.DocumentNode;
-
-            var asignments = node.SelectNodes("//h3").Select(x => x.InnerText).ToList();
-
-            var times = node.SelectNodes("//div[contains(@class, 'bodyTxt')] //div //p")
-                .Where(x => x.InnerText.Contains("mins"))
-                .Select(x => Convert.ToInt32(x.InnerText.Split(" mins.)").FirstOrDefault().Replace("(", "")))
-                .ToList();
-
-            Console.WriteLine(asignments);
-
+            var asignments = html.SelectNodes("//h3").Select(x => x.InnerText).ToList();
+            var times = GetTimeList(html);
             var bbt = BuildBecameBetterTeachers(asignments, times);
 
             return new LifeAndMinistryWeek
             {
-                WeekLabel = node.SelectSingleNode("//h1").InnerText,
+                WeekLabel = html.SelectSingleNode("//h1").InnerText,
                 Id = weekId,
                 IsCancelled = false,
-                BibleWeekReading = node.SelectSingleNode("//h2").InnerText,
+                BibleWeekReading = html.SelectSingleNode("//h2").InnerText,
                 OpeningSong = Convert.ToInt32(asignments[0].Split(" ")[1]),
                 BibleTreasures = new LifeAndMinistryAsignment
                 {
                     Title = asignments[1],
-                    BrotherName = "2. Tesoros de La Biblia",
+                    BrotherName = "",
                     Minutes = 10
                 },
                 BibleReading = new LifeAndMinistryStudentsAsignment
@@ -67,32 +62,49 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     BrotherName = ""
                 },
                 BecameBetterTeachers = bbt,
+                MiddleSong = Convert.ToInt32(getMiddleSongText(asignments).Replace("Canción", string.Empty).TrimStart()),
                 OurChristianLife = BuildOurChristianLife(asignments, times, bbt.Count),
                 CongregationBibleStudy = new LifeAndMinistryBibleStudy
                 {
-                    Title = asignments.FirstOrDefault(x => x.Contains("Estudio bíblico de la congregación")),
+                    Title = getBiblyStudy(asignments) ?? string.Empty,
                     BrotherName = string.Empty,
                     Reader = string.Empty,
                     Minutes = 30
                 },
-                EndingSong = Convert.ToInt32(asignments.FirstOrDefault(x => x.Contains("Palabras de conclusión")).Split(" | ")[1].Split(" ")[1])
+                EndingSong = GetEndingSong(asignments)
             };
+        }
+
+        private int GetEndingSong(List<string> asignments)
+        {
+            int.TryParse((asignments.FirstOrDefault(x => x.Contains("Palabras de conclusión")) ?? string.Empty).Split(" | ")[1].Split(" ")[1], out int endingSong);
+            return endingSong;
+        }
+
+        private List<int> GetTimeList(HtmlNode html)
+        {
+            return html.SelectNodes("//div[contains(@class, 'bodyTxt')] //div //p")
+                .Where(x => x.InnerText.Contains("mins"))
+                .Select(x => Convert.ToInt32(x.InnerText.Split(" mins.)").FirstOrDefault() ?? "0".Replace("(", "")))
+                .ToList();
         }
 
         private List<LifeAndMinistryAsignment> BuildOurChristianLife(List<string> asignments, List<int> minutesList, int becameBetterTeachersCount)
         {
-            var initialIndex = asignments.IndexOf(asignments.Where(x => x.StartsWith("Canción")).ToList()[1]) + 1;
-            var finalIndex = asignments.IndexOf(asignments.FirstOrDefault(x => x.Contains("Estudio bíblico de la congregación"))) - 1;
-
-            var initialIndexMinutes = 3 + becameBetterTeachersCount;
+            var initialIndex = asignments.IndexOf(getMiddleSongText(asignments)) + 1;
+            var finalIndex = asignments.IndexOf(getBiblyStudy(asignments)) - 1;
+            var initialIndexMinutes = becameBetterTeachersCount + 3;
             var minutes = minutesList.Where((_, i) => i >= initialIndexMinutes).ToList();
 
             return FilterAndBuildAsignmeny(asignments, minutes, initialIndex, finalIndex);
-        }       
+        }
+
+        private string getMiddleSongText(List<string> asignments) => asignments.Where(x => x.StartsWith("Canción")).ToList()[1];
+        private string getBiblyStudy(List<string> asignments) => asignments.FirstOrDefault(x => x.Contains("Estudio bíblico de la congregación")) ?? string.Empty;
 
         private List<LifeAndMinistryStudentsAsignment> BuildBecameBetterTeachers(List<string> asignments, List<int> minutesList)
         {
-            var initialIndex = asignments.IndexOf(asignments.FirstOrDefault(x => x.StartsWith("4.")));
+            var initialIndex = asignments.IndexOf(asignments.FirstOrDefault(x => x.StartsWith("4.")) ?? string.Empty);
             var finalIndex = asignments.IndexOf(asignments.Where(x => x.StartsWith("Canción")).ToList()[1]) -1;
 
             var finalIndexMinutes = (finalIndex - initialIndex + 1) + 3;
@@ -118,8 +130,6 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
         private string getWeekId(DateTime date)
         {
-            
-
             var week = 1;
             var edition = 0;
             var month = date.Month % 2 == 1 ? date.Month : date.Month - 1;
@@ -152,14 +162,20 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 case 12:
                     edition = 40;
                     break;
-            }           
+            }
 
             while (firstMondayOfEdition <= date)
             {
                 week++;
-                if(firstMondayOfEdition == new DateTime(2024, 04, 14))
+                //ignorando a semana da comemoração
+                if (memorialWeeksMondays.Any(x => x == firstMondayOfEdition))
                 {
                     week++;
+                }
+                if(week == 10)
+                {
+                    week = 0;
+                    edition++;
                 }
                 firstMondayOfEdition = firstMondayOfEdition.AddDays(7);
             }

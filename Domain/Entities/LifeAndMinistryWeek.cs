@@ -19,6 +19,7 @@ namespace CongEspVilaGuilhermeApi.Domain.Entities
         public int MiddleSong { get; set; }
         public List<LifeAndMinistryAsignment> OurChristianLife { get; set; }
         public LifeAndMinistryBibleStudy CongregationBibleStudy { get; set; }
-        public int EndingSong { get; set; }        
+        public int? EndingSong { get; set; }
+        public string? EndingPrayerBrother { get; set; }
     }
 }
