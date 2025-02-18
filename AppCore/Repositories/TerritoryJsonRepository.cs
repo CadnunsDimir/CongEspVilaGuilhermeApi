@@ -12,7 +12,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
     {
         private List<TerritoryCard>? cards = null;
 
-        public TerritoryJsonRepository(IWebHostEnvironment hostingEnvironment): base(hostingEnvironment)
+        public TerritoryJsonRepository(IHostEnvironment hostingEnvironment): base(hostingEnvironment)
         {
         }
 

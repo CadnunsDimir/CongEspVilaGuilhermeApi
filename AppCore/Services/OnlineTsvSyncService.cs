@@ -12,7 +12,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
          * e atualizar os que não estiverem lá
          * sem deletar os dado de lat long
          */
-        public OnlineTsvSyncService(IWebHostEnvironment hostingEnvironment) : base(hostingEnvironment)
+        public OnlineTsvSyncService(IHostEnvironment hostingEnvironment) : base(hostingEnvironment)
         {
         }
 

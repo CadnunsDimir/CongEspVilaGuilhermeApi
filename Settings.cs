@@ -13,7 +13,7 @@ namespace CongEspVilaGuilhermeApi
         public static string DynamoDBSecretKey { get; private set; } = string.Empty;
         public static string FrontAppHost { get; private set; } = string.Empty;
 
-        public static void LoadFromConfigFiles(ConfigurationManager configuration)
+        public static void LoadFromConfigFiles(IConfiguration configuration)
         {
             PasswordHashSecret = configuration["Auth:PasswordHashSecret"]!;
             EmailAddress = configuration["Email:Address"]!;

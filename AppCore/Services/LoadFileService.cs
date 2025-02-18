@@ -5,9 +5,9 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 {
     public class LoadFileService
     {
-        private IWebHostEnvironment environment;
+        private IHostEnvironment environment;
 
-        public LoadFileService(IWebHostEnvironment hostingEnvironment)
+        public LoadFileService(IHostEnvironment hostingEnvironment)
         {
             environment = hostingEnvironment;
         }
