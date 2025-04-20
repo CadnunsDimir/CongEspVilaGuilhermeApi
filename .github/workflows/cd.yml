@@ -20,8 +20,4 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: 22
         script: |
-          screen -X -S "cong-esp-api" &
-          cd /root/apps/CongEspVilaGuilhermeApi &
-          git pull &
-          git status &
-          screen -S "cong-esp-api" -d -m dotnet run --urls=http://*:8081
+          screen -X -S "cong-esp-api" & cd /root/apps/CongEspVilaGuilhermeApi & git pull &  git status & screen -S "cong-esp-api" -d -m dotnet run --urls=http://*:8081
