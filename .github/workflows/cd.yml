@@ -23,14 +23,17 @@ jobs:
           echo 'Open Repository folder'
           cd apps
           cd CongEspVilaGuilhermeApi
-          echo
-
+          
           echo 'Update data...'
-          git pull & 
+          git pull
           git status
-          echo
+          sleep 5
 
-          echo 'Restarting server...'
+          echo 'Stop server...'
           screen -ls
-          screen -X -S cong-esp-api
+          screen -XS "cong-esp-api" kill
+          sleep 5
+          echo 'Starting server...'
           screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
+          sleep 5
+          echo 'Sucessfully Published!'
