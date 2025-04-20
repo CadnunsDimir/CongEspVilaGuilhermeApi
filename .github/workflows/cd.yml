@@ -21,9 +21,8 @@ jobs:
         port: 22
         script: |
           whoami & 
-          dir &
           # screen -X -S cong-esp-api & 
-          cd apps/CongEspVilaGuilhermeApi/ & 
+          cd apps\CongEspVilaGuilhermeApi\ & 
           dir &
           # git pull & 
           # git status & 
