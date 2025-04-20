@@ -43,7 +43,7 @@ namespace CongEspVilaGuilhermeApi.Controllers
         [Authorize]
         public string ValidateToken()
         {
-            return "Authenticated";
+            return "Authenticated 20-04";
         }
     }
 }
