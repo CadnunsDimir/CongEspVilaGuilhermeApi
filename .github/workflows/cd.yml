@@ -20,12 +20,12 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: 22
         script: |
-          whoami & 
-          # screen -X -S cong-esp-api & 
-          cd apps & 
-          dir &
-          cd CongEspVilaGuilhermeApi & 
-          dir &
+          whoami
+          # screen -X -S cong-esp-api
+          ls
+          cd apps
+          ls
+          cd CongEspVilaGuilhermeApi
           # git pull & 
-          git status & 
+          git status
           # screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
