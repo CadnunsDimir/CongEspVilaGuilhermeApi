@@ -20,13 +20,14 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: 22
         script: |
-          whoami
-          ls
+          echo 'Open Repository folder'
           cd apps
-          ls
           cd CongEspVilaGuilhermeApi
+          echo 'Update data...'
           git pull & 
           git status
+
+          Echo 'Restarting server...'
           screen -ls
           screen -X -S cong-esp-api
           screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
