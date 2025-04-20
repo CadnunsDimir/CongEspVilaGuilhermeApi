@@ -21,8 +21,7 @@ jobs:
         port: 22
         script: |
           screen -X -S "cong-esp-api" &
-          cd ~/apps/CongEspVilaGuilhermeApi/ &
-          pwd &
+          cd /root/apps/CongEspVilaGuilhermeApi &
           git pull &
           git status &
           screen -S "cong-esp-api" -d -m dotnet run --urls=http://*:8081
