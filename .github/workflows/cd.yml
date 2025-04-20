@@ -22,8 +22,10 @@ jobs:
         script: |
           whoami & 
           # screen -X -S cong-esp-api & 
-          cd apps\CongEspVilaGuilhermeApi\ & 
+          cd apps & 
+          dir &
+          cd CongEspVilaGuilhermeApi & 
           dir &
           # git pull & 
-          # git status & 
+          git status & 
           # screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
