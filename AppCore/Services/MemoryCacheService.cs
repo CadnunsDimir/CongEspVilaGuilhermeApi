@@ -5,7 +5,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services;
 
 public class MemoryCacheService: ICacheService
 {
-    private IMemoryCache cache;    
+    private readonly IMemoryCache cache;    
 
     public MemoryCacheService(IMemoryCache cache)
     {

@@ -14,47 +14,36 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         public override string tableName => $"{domainName}-territory-cards";
 
         public override TerritoryCardMapper mapper => new TerritoryCardMapper();
-        public string cardIdKey = TerritoryCardMapper.Keys.CardId;
-        public string shareIdKey = TerritoryCardMapper.Keys.ShareId;
+        private readonly string cardIdKey = TerritoryCardMapper.Keys.CardId;
+        private readonly string shareIdKey = TerritoryCardMapper.Keys.ShareId;
 
-        private Search queryBy(string key, string value, SelectValues select, List<string>? attributes = null)
+        private Search queryBy(string key, DynamoDBEntry value, SelectValues select, List<string>? attributes = null)
         {
-            var scanFilter = new ScanFilter();
+            CheckIfContainsValidAttributes(select, attributes);
 
-           scanFilter.AddCondition(key, ScanOperator.Equal, new List<AttributeValue>
-            {
-                new AttributeValue(value)
-            });      
-
-            if (select == SelectValues.SpecificAttributes && attributes == null)
-                throw new ArgumentNullException(nameof(attributes));
-
-            var config = new ScanOperationConfig()
-            {
-                Filter = scanFilter,
+            return Table.Scan(new ScanOperationConfig(){
+                Filter = filterFrom(key, value),
                 Select = select,
                 AttributesToGet = attributes
-            };
+            });
+        }
 
-            return Table.Scan(config);
+        private static void CheckIfContainsValidAttributes(SelectValues select, List<string>? attributes = null)
+        {
+            if (select == SelectValues.SpecificAttributes && attributes == null)
+                throw new ArgumentNullException(nameof(attributes));
+        }
+
+        private static ScanFilter filterFrom(string key, DynamoDBEntry value)
+        {
+            var scanFilter = new ScanFilter();
+            scanFilter.AddCondition(key, ScanOperator.Equal, value);
+            return scanFilter;
         }
 
         private Search queryById(int id, SelectValues select, List<string>? attributes = null)
         {
-            var scanFilter = new ScanFilter();
-            scanFilter.AddCondition(cardIdKey, ScanOperator.Equal, id);
-
-            if (select == SelectValues.SpecificAttributes && attributes == null)
-                throw new ArgumentNullException(nameof(attributes));
-
-            var config = new ScanOperationConfig()
-            {
-                Filter = scanFilter,
-                Select = select,
-                AttributesToGet = attributes
-            };
-
-            return Table.Scan(config);
+            return queryBy(cardIdKey, id, select, attributes);
         }
 
         private async Task<List<TerritoryCard>>  RunQueryAsync(Search query)
@@ -144,15 +133,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 
         public async Task Delete(int id)
         {
-            var entityExists = await verifyIfExists(id);
-            if (entityExists)
-            {
-                var document = await Table.GetItemAsync(id);
-                document[TerritoryCardMapper.Keys.IsDeleted] = true;
-                await Table.UpdateItemAsync(document);
-                return;
-            }
-            throw new InvalidOperationException();
+            var card = await GetCardAsync(id);
+            CheckCardCanBeDeleted(card);
+            await Table.DeleteItemAsync(mapper.ToDynamoDocument(card!));            
+        }
+
+        private static void CheckCardCanBeDeleted(TerritoryCard? card)
+        {
+            if (card == null)
+                throw new InvalidOperationException("Entity does not exists");
+            if (card.Directions.Count > 0)
+                throw new InvalidOperationException("Territory contains directions. Move all to another card or delete the entries");
         }
 
         public async Task UpdateDirection(int cardId, Direction direction)
@@ -165,19 +156,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             await Update(card!);
         }
 
-        public Task<List<TerritoryCard>> GetAll()
-        {
-            return GetAllBy();
-        }
+        public Task<List<TerritoryCard>> GetAll() => GetManyByFilter(null);
 
-        private async Task<List<TerritoryCard>> GetAllBy(ScanFilter? filter = null)
+        public async Task<List<TerritoryCard>> GetManyByFilter(ScanFilter? filter = null)
         {
             var config = new ScanOperationConfig()
             {
                 Select = SelectValues.AllAttributes
             };
 
-            if(filter != null){
+            if (filter != null)
+            {
                 config.Filter = filter;
             }
 
@@ -252,7 +241,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             return response.Sum();
         }
 
-        private ScanFilter Where(string key, ScanOperator op, string? value = null)
+        private static ScanFilter Where(string key, ScanOperator op, string? value = null)
         {
             ScanFilter filter = new ScanFilter();
             if(value != null) 
@@ -263,7 +252,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 
         private async Task UpdateDirectionsSums()
         {            
-            var result  = await GetAllBy(Where(TerritoryCardMapper.Keys.DirectionsCount,  ScanOperator.IsNull));
+            var result  = await GetManyByFilter(Where(TerritoryCardMapper.Keys.DirectionsCount,  ScanOperator.IsNull));
             result.ForEach(async x => await Update(x));
         }        
 

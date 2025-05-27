@@ -1,0 +1,34 @@
+@authToken=Bearer putTokenHere
+@api=http://localhost:5264/api
+
+### login
+POST {{api}}/token
+Content-Type: application/json
+
+{
+	"login": "",
+	"password": ""
+}
+
+### Get Cards List
+GET {{api}}/territory
+Authorization: {{authToken}}
+
+### Get Card
+GET {{api}}/territory/67
+Authorization: {{authToken}}
+
+### Update a card
+PUT  {{api}}/territory
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+	"cardId": 67,
+	"neighborhood": "teste",
+	"directions": []
+}
+
+### Delete a card
+DELETE {{api}}/territory/67
+Authorization: {{authToken}}

@@ -22,11 +22,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             {
                 cards = new List<TerritoryCard>();
 
-                var jsonData = LoadFileAsString("territorio.json");
+                var jsonData = this.LoadFileAsJson<List<dynamic>>("territorio.json");
 
-                if (!string.IsNullOrWhiteSpace(jsonData))
+                if (jsonData != null && jsonData.Count > 0)
                 {
-                    cards = ConvertToDynamicList(jsonData).Select(TerritoryCardSelector).ToList();
+                    cards = jsonData.Select(TerritoryCardSelector).ToList();
                 }
             }
 
@@ -61,12 +61,6 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
                 }).ToList()
             };
         }
-
-        private List<dynamic> ConvertToDynamicList(string jsonData)
-        {
-            return JsonConvert.DeserializeObject<List<dynamic>>(jsonData) ?? new List<dynamic>();
-        }
-
 
         public Task<TerritoryCard?> GetCardAsync(int id)
         {

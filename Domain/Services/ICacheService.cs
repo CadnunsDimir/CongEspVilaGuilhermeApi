@@ -5,7 +5,7 @@ namespace CongEspVilaGuilhermeApi.Domain.Services
 {
     public interface ICacheService
     {
-        Task Clear(string v);
+        Task Clear(string key);
         Task<T?> GetAsync<T>(string key, Func<ICacheEntry, Task<T>> factory) where T : class;
         Task SetAsync<T>(string key, T value) where T : class;
     }

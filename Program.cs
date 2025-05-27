@@ -1,4 +1,5 @@
 using CongEspVilaGuilhermeApi;
+using CongEspVilaGuilhermeApi.AppCore.Exceptions;
 using CongEspVilaGuilhermeApi.AppCore.Repositories;
 using CongEspVilaGuilhermeApi.AppCore.Services;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
@@ -45,6 +46,8 @@ builder.Services.AddScoped<UserUseCases>();
 builder.Services.AddScoped<OnlineTsvSyncService>();
 builder.Services.AddScoped<LifeAndMinistryProgramService>();
 builder.Services.AddScoped<ILifeAndMinistryRepository, LifeAndMinistryDynamoDbRepository>();
+builder.Services.AddScoped<LoadFileService>();
+builder.Services.AddScoped<IPreachingScheduleRepository, JsonPreachingScheduleRepository>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

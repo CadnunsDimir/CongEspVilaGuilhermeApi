@@ -1,7 +1,3 @@
-
-
-using System.Runtime.Serialization;
-using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Exceptions;
 using CongEspVilaGuilhermeApi.Domain.Models;
@@ -24,7 +20,7 @@ public class TerritoryUseCases
 
     public async Task<List<int>> GetCardsAsync()
     {
-        var data = await cache.GetAsync(nameof(GetCardsAsync), async config =>{
+        var data = await cache.GetAsync(nameof(repository.GetCardsAsync), async config =>{
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardsAsync();
             Console.WriteLine("loading from db");
@@ -34,14 +30,12 @@ public class TerritoryUseCases
         return data!;
     }
 
-    public Task Create(TerritoryCard card){
+    public async Task Create(TerritoryCard card){
         var errors = card.CheckErrors();
-        if (errors.Length == 0)
-        {
-            _ = ClearCacheMap();
-            return repository.Create(card);
-        }
-        throw new DomainEntityException(errors);
+        if (errors.Length > 0)
+            throw new DomainEntityException(errors);
+        await ClearCacheMap();
+        await repository.Create(card);
     }
 
     public async Task Update(TerritoryCard card)
@@ -51,7 +45,7 @@ public class TerritoryUseCases
         await ClearCacheMap();
     }
 
-    private string TerritoryCardCacheKey(int cardId) => typeof(TerritoryCard).Name + "_" + cardId;
+    private static string TerritoryCardCacheKey(int cardId) => typeof(TerritoryCard).Name + "_" + cardId;
 
     public async Task<TerritoryCard?> GetCardAsync(int id)
     {
@@ -60,7 +54,7 @@ public class TerritoryUseCases
             var data = await repository.GetCardAsync(id);
             Console.WriteLine("loading from db");
             if(data == null)
-                throw new Exception("not found");
+                throw new EntityNotFoundException<TerritoryCard>();
             return data;
         });
 
@@ -122,6 +116,7 @@ public class TerritoryUseCases
 
     private async Task ClearCacheMap()
     {
+        await cache.Clear(nameof(repository.GetCardsAsync));
         await cache.Clear(nameof(repository.GetFullMapMarkers));
         await cache.Clear(nameof(repository.GetCardsToFixCoordinates));
         await cache.Clear(nameof(repository.CountAllDirections));
