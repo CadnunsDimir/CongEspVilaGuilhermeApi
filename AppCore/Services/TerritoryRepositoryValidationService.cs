@@ -95,7 +95,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 }
             }
              Console.WriteLine("[UPDate TSV] lets update on db");
-            await dynamoDb.UpdateMany(itensToUpdate);
+            await dynamoDb.UpdateMany(itensToUpdate.ToArray());
             var successMessage = $"[TsvOnline] the database is up to date!";
 
             if (changes > 0)

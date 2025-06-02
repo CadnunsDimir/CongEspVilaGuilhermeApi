@@ -121,4 +121,46 @@ public class TerritoryUseCases
         await cache.Clear(nameof(repository.GetCardsToFixCoordinates));
         await cache.Clear(nameof(repository.CountAllDirections));
     }
+
+    public async Task MoveDirections(DirectionsExchange move)
+    {
+        var originCard = await GetCardAsync(move.OriginCardId);
+        var destinationCard = await GetCardAsync(move.DestinationCardId);
+
+        CheckCardsNotNull(originCard, destinationCard);
+
+        var directionMoved = ExecuteDirectionMovement(originCard!, destinationCard!, move);        
+
+        if (directionMoved)
+        {
+            await repository.UpdateMany(destinationCard!, originCard!);
+            await ClearCacheCards(move);            
+        }
+    }
+
+    private async Task ClearCacheCards(DirectionsExchange move)
+    {
+        await cache.Clear(TerritoryCardCacheKey(move.OriginCardId));
+        await cache.Clear(TerritoryCardCacheKey(move.DestinationCardId));
+    }
+
+    private bool ExecuteDirectionMovement(TerritoryCard originCard, TerritoryCard destinationCard, DirectionsExchange move)
+    {
+        var directionMoved = false;
+        foreach (var direction in move.Directions)
+        {
+            if (originCard.HasDirection(direction))
+            {
+                originCard.MoveTo(direction, destinationCard);
+                directionMoved = true;
+            }
+        }
+        return directionMoved;
+    }
+
+    private void CheckCardsNotNull(TerritoryCard? originCard, TerritoryCard? destinationCard)
+    {
+        if (originCard == null || destinationCard == null)
+            throw new EntityNotFoundException<TerritoryCard>();
+    }
 }

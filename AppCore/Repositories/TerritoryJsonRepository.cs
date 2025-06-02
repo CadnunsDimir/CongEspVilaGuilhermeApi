@@ -97,7 +97,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             throw new NotImplementedException();
         }
 
-        public Task UpdateMany(List<TerritoryCard> territories)
+        public Task UpdateMany(TerritoryCard[] territories)
         {
             throw new NotImplementedException();
         }

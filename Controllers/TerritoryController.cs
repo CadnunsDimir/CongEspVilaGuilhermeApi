@@ -45,6 +45,11 @@ namespace CongEspVilaGuilhermeApi.Controllers
         public Task EditDirection(int cardId, Direction direction) => 
             useCases.UpdateDirection(cardId, direction);
 
+        [HttpPost("move")]
+        [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
+        public Task Move([FromBody] DirectionsExchange move) =>
+            useCases.MoveDirections(move);
+
         [HttpGet("{cardId}/share")]
         [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public async Task<ShareTerritoryCard> Share(int cardId)

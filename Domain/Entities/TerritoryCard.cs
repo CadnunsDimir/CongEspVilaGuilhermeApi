@@ -19,5 +19,23 @@ namespace CongEspVilaGuilhermeApi.Domain.Entities
             });
             return errors.ToArray();
         }
+
+        private bool Filter(Direction d, Direction direction) =>
+                d.StreetName == direction.StreetName &&
+                d.HouseNumber == direction.HouseNumber;
+        public bool HasDirection(Direction direction)
+        {
+            return Directions.Any(d=> Filter(d, direction));
+        }
+
+        public void MoveTo(Direction direction, TerritoryCard destinationCard)
+        {
+            var directionToMove = Directions.Where(d => Filter(d, direction)).ToList();
+            foreach (var item in directionToMove)
+            {
+                destinationCard.Directions.Add(item);
+                Directions.Remove(item);
+            }
+        }
     }
 }

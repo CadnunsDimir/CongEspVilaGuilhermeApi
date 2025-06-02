@@ -174,15 +174,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             return list;
         }
 
-        public async Task UpdateMany(List<TerritoryCard> territories)
+        public async Task UpdateMany(params TerritoryCard[] territories)
         {
             var documents = territories.Select(x=> mapper.ToDynamoDocument(x)).ToList();
+
             foreach (var item in documents)
             {
                 Console.WriteLine("[UpdateMany] update more 1...");
                 await Table.UpdateItemAsync(item);
-                await Task.Delay(500);
+                await Task.Delay(100);
             }
+
             Console.WriteLine("[UpdateMany] update finished!");
         }
 

@@ -13,7 +13,7 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         Task Delete(int id);
         Task UpdateDirection(int cardId, Direction direction);
         Task<List<TerritoryCard>> GetAll();
-        Task UpdateMany(List<TerritoryCard> territories);
+        Task UpdateMany(params TerritoryCard[] territories);
         Task UpdateShareableIdAsync(int cardId, Guid id);
         Task<TerritoryCard?> GetByShareId(Guid cardId);
         Task<List<TerritoryMapMarkers>> GetFullMapMarkers();
