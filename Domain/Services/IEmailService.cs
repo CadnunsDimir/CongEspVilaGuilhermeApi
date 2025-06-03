@@ -6,5 +6,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Services
     {
         void NotifyNewUser(User user);
         void SendNewPassword(User user, string plainPassword);
+        void SendResetPassordEmail(User user);
     }
 }

@@ -1,9 +1,11 @@
-﻿using CongEspVilaGuilhermeApi.Domain.Models;
+﻿using CongEspVilaGuilhermeApi.AppCore.Models;
+using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Extensions;
 using System.Net;
+using System.Security.Principal;
 
 namespace CongEspVilaGuilhermeApi.Controllers
 {
@@ -16,6 +18,7 @@ namespace CongEspVilaGuilhermeApi.Controllers
         {
             { TransactionEntityStatus.CreatedOrUpdated, 200 },
             { TransactionEntityStatus.UserNameAlreadyExists, 422 },
+            { TransactionEntityStatus.NotUpdated, 404 }
         };
 
         public UserController(UserUseCases useCases)
@@ -26,12 +29,16 @@ namespace CongEspVilaGuilhermeApi.Controllers
         [HttpPost]
         public async Task<ObjectResult> Post(NewAccount newAccount)
         {
+            return MapResponse(newAccount.UserName, await useCases.CreateNewUser(newAccount));
+        }
 
-            var status = await useCases.CreateNewUser(newAccount);
+        private ObjectResult MapResponse(string UserName, TransactionEntityStatus status)
+        {
             var statusCode = mapStatusCodes[status];
 
-            var response = new {
-                userName = newAccount.UserName,
+            var response = new
+            {
+                userName = UserName,
                 status = status.GetDisplayName(),
                 statusCode
             };
@@ -46,5 +53,16 @@ namespace CongEspVilaGuilhermeApi.Controllers
             return useCases.AddRole(userName, role);       
         }
 
+        [HttpGet("{username}/reset-password")]
+        public Task StartResetPassword(string userName)
+        {
+            return useCases.StartResetPassword(userName);
+        }
+
+        [HttpPost("{username}/reset-password")]
+        public async Task<ObjectResult> FinishResetPassword(string userName, [FromBody] ResetPasswordBody body)
+        {
+            return MapResponse(userName, await useCases.FinishResetPassword(userName, body.ResetPasswordId, body.NewPassword));
+        }
     }
 }

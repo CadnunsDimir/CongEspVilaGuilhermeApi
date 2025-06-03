@@ -27,7 +27,7 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
             this.tokenService = tokenService;
         }
 
-        private bool PasswordHasNoValue(User? user) => string.IsNullOrEmpty(user?.PasswordHash);
+        private static bool PasswordHasNoValue(User? user) => string.IsNullOrEmpty(user?.PasswordHash);
 
         public async Task InitializeAdminUserAsync()
         {
@@ -82,6 +82,36 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
             {
                 throw new ArgumentException("ValidTypes: " + RoleTypes.ValidRolesSeparedByColma());
             }
+        }
+
+        public async Task StartResetPassword(string userName)
+        {
+            var user = await repository.GetByUserName(userName)
+                ?? throw new ArgumentException($"Usuário {userName} não encontrado");
+
+            user.RequestResetPassord();
+
+            emailService.SendResetPassordEmail(user);
+            await repository.Update(user);
+        }
+
+        public async Task<TransactionEntityStatus> FinishResetPassword(string userName, string resetPasswordId, string newPassword)
+        {
+            var user = await repository.GetByUserName(userName)
+                ?? throw new ArgumentException($"Usuário {userName} não encontrado");
+
+            if (user.CanResetPassword(resetPasswordId))
+            {
+                user.PasswordHash = tokenService.GeneratePasswordHash(newPassword);
+                user.ResetPasswordId = null;
+                user.ResetPasswordRequestedAt = null;
+                await repository.Update(user);
+                emailService.SendNewPassword(user, newPassword);
+
+                return TransactionEntityStatus.CreatedOrUpdated;
+            }
+
+            return TransactionEntityStatus.NotUpdated;
         }
     }
 }

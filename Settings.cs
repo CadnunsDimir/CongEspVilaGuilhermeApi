@@ -12,6 +12,7 @@ namespace CongEspVilaGuilhermeApi
         public static string DynamoDBAccessKey { get; private set; } = string.Empty;
         public static string DynamoDBSecretKey { get; private set; } = string.Empty;
         public static string FrontAppHost { get; private set; } = string.Empty;
+        public readonly static string DbDateformatString = "yyyy-MM-ddTHH:mm:ss.fffZ";
 
         public static void LoadFromConfigFiles(IConfiguration configuration)
         {

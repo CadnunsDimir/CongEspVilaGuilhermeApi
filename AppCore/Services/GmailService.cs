@@ -36,20 +36,29 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             });
         }
 
+        public void SendResetPassordEmail(User user)
+        {
+            SendEmail(new Email
+            {
+                EmailAddress = user.Email,
+                Subject = "Reset de Senha Solicitado [CongEspVilaGuilherme]",
+                HtmlMessage = $"Usuário: {user.UserName}<br>" +
+                $"<a href=\"http://{Settings.FrontAppHost}/#/reset-password/{user.ResetPasswordId}\">Clique aqui</a>"
+            });
+        }
+
         private void SendEmail(Email email)
         {
             var mail = new MailMessage();
 
-            //define os endereços
             mail.From = new MailAddress(senderEmail);
             mail.To.Add(email.EmailAddress);
             mail.Bcc.Add(senderEmail);
 
-            //define o conteúdo
             mail.Subject = email.Subject;
-            mail.Body = email.MultiLineMessage;
+            mail.Body = email.Body;
+            mail.IsBodyHtml = email.IsBodyHtml;
 
-            //envia a mensagem
             var client = new SmtpClient(emailServerHost);
             client.EnableSsl = true;
             NetworkCredential cred = new NetworkCredential(senderEmail, emailPassword);

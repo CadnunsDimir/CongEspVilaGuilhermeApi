@@ -12,6 +12,8 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             internal static readonly string Role = "role";
             internal static readonly string UserName = "username";
             internal static readonly string internalId = "internal_Id";
+            internal static readonly string ResetPasswordId = "reset_password_id";
+            internal static readonly string ResetPasswordRequestedAt = "reset_password_requested_at";
         }
 
         public Document ToDynamoDocument(int internalId, User user)
@@ -28,11 +30,15 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
                 Email = result[Keys.Email],
                 PasswordHash = result[Keys.PasswordHash],
                 Role = Optional(result, Keys.Role),
-                UserName = result[Keys.UserName]
+                UserName = result[Keys.UserName],
+                ResetPasswordId = Optional(result, Keys.ResetPasswordId),
+                ResetPasswordRequestedAt = DateTime.TryParse(Optional(result, Keys.ResetPasswordRequestedAt), out var resetPasswordDate)
+                    ? resetPasswordDate
+                    : null
             };
         }
 
-        private string Optional(Document result, string attributeName) =>
+        private static string Optional(Document result, string attributeName) =>
             result.Contains(attributeName) ? result[attributeName] : string.Empty;
 
         public Document ToDynamoDocument(User user)
@@ -42,6 +48,8 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             dynamoDocument[Keys.PasswordHash] = user.PasswordHash;
             dynamoDocument[Keys.Role] = user.Role;
             dynamoDocument[Keys.UserName] = user.UserName;
+            dynamoDocument[Keys.ResetPasswordId] = user.ResetPasswordId;
+            dynamoDocument[Keys.ResetPasswordRequestedAt] = user.ResetPasswordRequestedAt?.ToString(Settings.DbDateformatString);
             return dynamoDocument;
         }
     }
