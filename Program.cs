@@ -33,7 +33,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddMemoryCache();
 
 // Add services to the container.
-builder.Services.AddScoped<IEmailService, GmailService>();
+builder.Services.AddSingleton<IEmailService, GmailService>();
 builder.Services.AddScoped<IUserRepository, DynamoDbUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<TerritoryJsonRepository>();
@@ -69,9 +69,12 @@ using (var scope = app.Services.CreateScope())
 {
     var userUseCases = scope.ServiceProvider.GetService<UserUseCases>();
     var repositoryValidator = scope.ServiceProvider.GetService<TerritoryRepositoryValidationService>();
-    var gmail = new GmailService();
     await userUseCases!.InitializeAdminUserAsync();
     await repositoryValidator!.ValidateDataOnDynamoDb();
+}
+
+using (var gmail = new GmailService())
+{
     await gmail.CheckConnectionAsync();
 }
 

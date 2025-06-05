@@ -10,16 +10,16 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
     /// if you use gmail, create a email only for this app and create a app password in this link:
     /// https://myaccount.google.com/apppasswords
     /// </summary>
-    public class GmailService : IEmailService
+    public class GmailService : IEmailService, IDisposable
     {
         private readonly string senderEmail = Settings.EmailAddress;
         private readonly string emailPassword = Settings.EmailPassword;
         private readonly string emailServerHost = Settings.EmailServerHost;
         private readonly SmtpClient emailClient;
+        private bool disposed = false;
 
         public GmailService()
         {
-            //TODO: move this instatiation to DI on Program.cs
             emailClient =  new SmtpClient(emailServerHost)
             {
                 Port = 587,
@@ -97,9 +97,26 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 mail.Bcc.Add(senderEmail);
             }           
 
-            Console.WriteLine($"[GmailService] Credentials:: email:{senderEmail}, pw: {emailPassword} ");
-
             await emailClient.SendMailAsync(mail);
+        }
+
+        protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                emailClient?.Dispose();
+            }
+            
+            disposed = true;
+        }
+    }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
