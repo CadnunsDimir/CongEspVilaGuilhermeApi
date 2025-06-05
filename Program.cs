@@ -69,10 +69,11 @@ using (var scope = app.Services.CreateScope())
 {
     var userUseCases = scope.ServiceProvider.GetService<UserUseCases>();
     var repositoryValidator = scope.ServiceProvider.GetService<TerritoryRepositoryValidationService>();
-    await userUseCases!.InitializeAdminUserAsync();    
+    var gmail = new GmailService();
+    await userUseCases!.InitializeAdminUserAsync();
     await repositoryValidator!.ValidateDataOnDynamoDb();
+    await gmail.CheckConnectionAsync();
 }
-
 
 app.UseCors();
 app.UseCongVilaguilhermeAuthentication();

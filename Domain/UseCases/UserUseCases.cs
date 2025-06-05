@@ -36,8 +36,8 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
             {
                 var tempPassword = Guid.NewGuid().ToString();
                 admin.PasswordHash = tokenService.GeneratePasswordHash(tempPassword);
+                await emailService.SendNewPasswordAsync(admin, tempPassword);
                 await repository.Update(admin);
-                emailService.SendNewPassword(admin, tempPassword);
                 Console.WriteLine($"senha admin enviada para o email {admin.Email}");
             }
         }
@@ -54,8 +54,8 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
             if (await repository.UserNameIsAvailable(newAccount.UserName))
             {
                 var user = newAccount.CreateUserEntity(tokenService.GeneratePasswordHash(newAccount.Password));
+                await emailService.NotifyNewUserAsync(user);
                 await repository.Create(user);
-                emailService.NotifyNewUser(user);
                 return TransactionEntityStatus.CreatedOrUpdated;
             }
             return TransactionEntityStatus.UserNameAlreadyExists;
@@ -91,7 +91,7 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
 
             user.RequestResetPassord();
 
-            emailService.SendResetPassordEmail(user);
+            await emailService.SendResetPassordEmailAsync(user);
             await repository.Update(user);
         }
 
@@ -105,8 +105,8 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
                 user.PasswordHash = tokenService.GeneratePasswordHash(newPassword);
                 user.ResetPasswordId = null;
                 user.ResetPasswordRequestedAt = null;
+                await emailService.SendNewPasswordAsync(user, newPassword);
                 await repository.Update(user);
-                emailService.SendNewPassword(user, newPassword);
 
                 return TransactionEntityStatus.CreatedOrUpdated;
             }

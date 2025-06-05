@@ -15,20 +15,33 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         private readonly string senderEmail = Settings.EmailAddress;
         private readonly string emailPassword = Settings.EmailPassword;
         private readonly string emailServerHost = Settings.EmailServerHost;
+        private readonly SmtpClient emailClient;
 
-        public void NotifyNewUser(User user)
+        public GmailService()
         {
-            SendEmail(new Email
+            //TODO: move this instatiation to DI on Program.cs
+            emailClient =  new SmtpClient(emailServerHost)
+            {
+                Port = 587,
+                EnableSsl = true,
+                Credentials = new NetworkCredential(senderEmail, emailPassword),
+            };
+        }
+
+        public async Task NotifyNewUserAsync(User user)
+        {
+            await SendEmailAsync(new Email
             {
                 EmailAddress = user.Email,
                 Subject = "Nova Usuario Criado [CongEspVilaGuilherme]",
-                MultiLineMessage = $"O usuário '{user.UserName}' foi criado com sucesso. agora você acessar o sistema com acesso basico (Apenas Leitura)"
+                MultiLineMessage = $"O usuário '{user.UserName}' foi criado com sucesso. agora você acessar o sistema com acesso basico (Apenas Leitura)",
+                SendCopyToAdmin = true
             });
         }
 
-        public void SendNewPassword(User user, string plainPassword)
+        public async Task SendNewPasswordAsync(User user, string plainPassword)
         {
-            SendEmail(new Email
+            await SendEmailAsync(new Email
             {
                 EmailAddress = user.Email,
                 Subject = "Nova Senha Sistema [CongEspVilaGuilherme]",
@@ -36,9 +49,9 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             });
         }
 
-        public void SendResetPassordEmail(User user)
+        public async Task SendResetPassordEmailAsync(User user)
         {
-            SendEmail(new Email
+            await SendEmailAsync(new Email
             {
                 EmailAddress = user.Email,
                 Subject = "Reset de Senha Solicitado [CongEspVilaGuilherme]",
@@ -47,23 +60,46 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             });
         }
 
-        private void SendEmail(Email email)
+        internal async Task CheckConnectionAsync()
         {
-            var mail = new MailMessage();
+            try
+            {
+                await SendEmailToAdminAsync("CongEspVilaGuilhermeApi is Starting...");
+                Console.WriteLine("[GmailService.CheckConnection] Gmail Conected Sucessfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[GmailService.CheckConnection] Error: " + ex.Message);
+            }
+        }
 
-            mail.From = new MailAddress(senderEmail);
-            mail.To.Add(email.EmailAddress);
-            mail.Bcc.Add(senderEmail);
+        private async Task SendEmailToAdminAsync(string message)
+        {
+            await SendEmailAsync(new Email
+            {
+                EmailAddress = senderEmail,
+                Subject = "Admin Event [CongEspVilaGuilherme]",
+                HtmlMessage = message
+            });
+        }
 
-            mail.Subject = email.Subject;
-            mail.Body = email.Body;
-            mail.IsBodyHtml = email.IsBodyHtml;
+        private async Task SendEmailAsync(Email email)
+        {
+            var mail = new MailMessage(senderEmail, email.EmailAddress)
+            {
+                Subject = email.Subject,
+                Body = email.Body,
+                IsBodyHtml = email.IsBodyHtml
+            };
 
-            var client = new SmtpClient(emailServerHost);
-            client.EnableSsl = true;
-            NetworkCredential cred = new NetworkCredential(senderEmail, emailPassword);
-            client.Credentials = cred;
-            client.Send(mail);
+            if (email.SendCopyToAdmin)
+            {                
+                mail.Bcc.Add(senderEmail);
+            }           
+
+            Console.WriteLine($"[GmailService] Credentials:: email:{senderEmail}, pw: {emailPassword} ");
+
+            await emailClient.SendMailAsync(mail);
         }
     }
 }

@@ -6,6 +6,8 @@
         public string? Subject { get; init; }
         public required string EmailAddress { get; init; }
         public string? HtmlMessage { get; init; }
+        public bool SendCopyToAdmin { get; init; } = false;
+        
         public string? Body
         {
             get
