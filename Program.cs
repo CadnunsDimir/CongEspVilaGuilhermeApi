@@ -6,6 +6,7 @@ using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Services;
 using CongEspVilaGuilhermeApi.Domain.UseCases;
 
+var defaultLogger = new ConsoleLoggerService();
 var builder = WebApplication.CreateBuilder(args);
 
 Settings.LoadFromConfigFiles(builder.Configuration);
@@ -22,7 +23,7 @@ builder.Services.AddCors(options =>
                 policy.SetIsOriginAllowed(origin => {
                     var host = new Uri(origin).Host;
                     var allowedHost = originAllowed.Contains(host);
-                    Console.WriteLine($"[SetIsOriginAllowed] host: {host}, allowed: {allowedHost}");
+                    defaultLogger.Log($"[SetIsOriginAllowed] host: {host}, allowed: {allowedHost}");
                     return allowedHost;
                 })
                 .AllowAnyHeader()
@@ -33,6 +34,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddMemoryCache();
 
 // Add services to the container.
+builder.Services.AddSingleton<ILoggerService, ConsoleLoggerService>();
 builder.Services.AddSingleton<IEmailService, GmailService>();
 builder.Services.AddScoped<IUserRepository, DynamoDbUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -73,7 +75,8 @@ using (var scope = app.Services.CreateScope())
     await repositoryValidator!.ValidateDataOnDynamoDb();
 }
 
-using (var gmail = new GmailService())
+//TODO: contain bug on DI, building null inside a scope
+using (var gmail = new GmailService(defaultLogger))
 {
     await gmail.CheckConnectionAsync();
 }

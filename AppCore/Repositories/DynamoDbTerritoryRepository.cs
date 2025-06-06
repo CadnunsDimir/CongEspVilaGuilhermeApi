@@ -4,6 +4,7 @@ using CongEspVilaGuilhermeApi.AppCore.Models;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
+using CongEspVilaGuilhermeApi.Domain.Services;
 using CongEspVilaGuilhermeApi.Services.Mappers;
 using Newtonsoft.Json.Linq;
 
@@ -16,6 +17,12 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         public override TerritoryCardMapper mapper => new TerritoryCardMapper();
         private readonly string cardIdKey = TerritoryCardMapper.Keys.CardId;
         private readonly string shareIdKey = TerritoryCardMapper.Keys.ShareId;
+        private ILoggerService logger;
+
+        public DynamoDbTerritoryRepository(ILoggerService logger)
+        {
+            this.logger = logger;
+        }
 
         private Search queryBy(string key, DynamoDBEntry value, SelectValues select, List<string>? attributes = null)
         {
@@ -180,12 +187,12 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 
             foreach (var item in documents)
             {
-                Console.WriteLine("[UpdateMany] update more 1...");
+                logger.Log("[UpdateMany] update more 1...");
                 await Table.UpdateItemAsync(item);
                 await Task.Delay(100);
             }
 
-            Console.WriteLine("[UpdateMany] update finished!");
+            logger.Log("[UpdateMany] update finished!");
         }
 
         public async Task UpdateShareableIdAsync(int cardId, Guid id)

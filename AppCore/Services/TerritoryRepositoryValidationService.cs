@@ -1,5 +1,6 @@
 ﻿using CongEspVilaGuilhermeApi.AppCore.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Services;
 
 namespace CongEspVilaGuilhermeApi.AppCore.Services
 {
@@ -8,15 +9,18 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         private readonly TerritoryJsonRepository json;
         private readonly DynamoDbTerritoryRepository dynamoDb;
         private readonly OnlineTsvSyncService onlineTsvSync;
+        private readonly ILoggerService logger;
 
         public TerritoryRepositoryValidationService(
             TerritoryJsonRepository json, 
             DynamoDbTerritoryRepository dynamoDb,
-            OnlineTsvSyncService onlineTsvSync)
+            OnlineTsvSyncService onlineTsvSync,
+            ILoggerService logger)
         {
             this.json = json;
             this.dynamoDb = dynamoDb;
             this.onlineTsvSync = onlineTsvSync;
+            this.logger = logger;
         }
 
         public async Task ValidateDataOnDynamoDb()
@@ -24,7 +28,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             var countDb = await dynamoDb.GetCardsAsync();
             if (countDb?.Count == 0)
             {
-                Console.WriteLine("[ValidateDataOnDynamoDb] DynamoDb Vazio. Preenchendo com json de territorios");
+                logger.Log("[ValidateDataOnDynamoDb] DynamoDb Vazio. Preenchendo com json de territorios");
                 var territoryJson = await json.GetCardsAsync();
                 territoryJson.ForEach(async cardId =>
                 {
@@ -35,21 +39,21 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     }
                 });
 
-                Console.WriteLine("[ValidateDataOnDynamoDb] DynamoDb carregado");
+                logger.Log("[ValidateDataOnDynamoDb] DynamoDb carregado");
             }
         }
 
         public async Task<string> UpdateDbUsingOnlineSheetAsync()
         {
-            Console.WriteLine("[UPDate TSV] init");
+            logger.Log("[UPDate TSV] init");
             var cardsFromOnlineSheet = await onlineTsvSync.GetCardFromOnlineSheetAsync();
-            Console.WriteLine("[UPDate TSV] file loaded");
+            logger.Log("[UPDate TSV] file loaded");
             var memoryDb = await dynamoDb.GetAll();
-            Console.WriteLine("[UPDate TSV] all cards on db loaded");
+            logger.Log("[UPDate TSV] all cards on db loaded");
             var adressesBook = memoryDb.SelectMany(x=> x.Directions)
                 .Where(x=> x.Lat != null && x.Long != null)
                 .ToList();
-            Console.WriteLine("[UPDate TSV] adressBook created");
+            logger.Log("[UPDate TSV] adressBook created");
             var itensToUpdate = new List<TerritoryCard>();
             var changes = 0;
             var additions = 0;
@@ -62,7 +66,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     changes += tsvCard.Directions.Count;
                     additions += tsvCard.Directions.Count;
                     await dynamoDb.Create(tsvCard);
-                    Console.WriteLine("[UPDate TSV] new card");
+                    logger.Log("[UPDate TSV] new card");
                 }
                 else
                 {
@@ -91,10 +95,10 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                     cardDb.Directions = tsvCard.Directions;
                     cardDb.Neighborhood = tsvCard.Neighborhood;
                     itensToUpdate.Add(cardDb);
-                    Console.WriteLine("[UPDate TSV] card updated, cardId= " +tsvCard.CardId);
+                    logger.Log("[UPDate TSV] card updated, cardId= " +tsvCard.CardId);
                 }
             }
-             Console.WriteLine("[UPDate TSV] lets update on db");
+             logger.Log("[UPDate TSV] lets update on db");
             await dynamoDb.UpdateMany(itensToUpdate.ToArray());
             var successMessage = $"[TsvOnline] the database is up to date!";
 
@@ -103,7 +107,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 successMessage += $"\n[TsvOnline] Synced OK | {changes} changes: {additions} additions and {deletions} deletions!";
             }
             
-            Console.WriteLine(successMessage);
+            logger.Log(successMessage);
             return successMessage;
         }
     }

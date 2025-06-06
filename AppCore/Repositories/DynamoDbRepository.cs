@@ -11,6 +11,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         public abstract string tableName { get; }
         public abstract Mapper mapper { get; }
 
+        //TODO: Move this new to dependency injection
         public AmazonDynamoDBClient Client
         {
 

@@ -18,13 +18,15 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
         private readonly IUserRepository repository;
         private readonly IEmailService emailService;
         private readonly ITokenService tokenService;
+        private readonly ILoggerService logger;
         private readonly string AdminUserName = "admin";
 
-        public UserUseCases(IUserRepository repository, IEmailService emailService, ITokenService tokenService)
+        public UserUseCases(IUserRepository repository, IEmailService emailService, ITokenService tokenService, ILoggerService logger)
         {
             this.repository = repository;
             this.emailService = emailService;
             this.tokenService = tokenService;
+            this.logger = logger;
         }
 
         private static bool PasswordHasNoValue(User? user) => string.IsNullOrEmpty(user?.PasswordHash);
@@ -38,7 +40,7 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
                 admin.PasswordHash = tokenService.GeneratePasswordHash(tempPassword);
                 await emailService.SendNewPasswordAsync(admin, tempPassword);
                 await repository.Update(admin);
-                Console.WriteLine($"senha admin enviada para o email {admin.Email}");
+                logger.Log($"senha admin enviada para o email {admin.Email}");
             }
         }
 

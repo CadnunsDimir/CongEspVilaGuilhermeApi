@@ -1,19 +1,23 @@
 ﻿
 using CongEspVilaGuilhermeApi.Domain.Entities;
+using CongEspVilaGuilhermeApi.Domain.Services;
 using System.Net.Http.Headers;
 
 namespace CongEspVilaGuilhermeApi.AppCore.Services
 {
     public class OnlineTsvSyncService : LoadFileService
     {
+        private readonly ILoggerService logger;
+
         /*baixar arquivo
-         * coverter em objetos
-         * comparar com os registros do DynamoDb
-         * e atualizar os que não estiverem lá
-         * sem deletar os dado de lat long
-         */
-        public OnlineTsvSyncService(IHostEnvironment hostingEnvironment) : base(hostingEnvironment)
+        * coverter em objetos
+        * comparar com os registros do DynamoDb
+        * e atualizar os que não estiverem lá
+        * sem deletar os dado de lat long
+        */
+        public OnlineTsvSyncService(IHostEnvironment hostingEnvironment, ILoggerService logger) : base(hostingEnvironment)
         {
+            this.logger = logger;
         }
 
         private List<TerritoryCard> getCardListFromTSVFileContent(string tsvFileContent)
@@ -48,7 +52,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
                     if (existingCard == null)
                     {
-                        Console.WriteLine("[getCardListFromTSVFileContent] creating card_" + card.CardId);
+                        logger.Log("[getCardListFromTSVFileContent] creating card_" + card.CardId);
                     }
 
                     var adressData = values[fullDirectionKey];
@@ -81,7 +85,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 }
             }
 
-            Console.WriteLine($"[getCardListFromTSVFileContent] totals: {cards.Count} cards and {cards.Sum(x=>x.Directions.Count)} directions");
+            logger.Log($"[getCardListFromTSVFileContent] totals: {cards.Count} cards and {cards.Sum(x=>x.Directions.Count)} directions");
             return cards;
         }
 

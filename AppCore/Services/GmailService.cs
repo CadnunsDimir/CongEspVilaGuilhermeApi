@@ -15,11 +15,13 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         private readonly string senderEmail = Settings.EmailAddress;
         private readonly string emailPassword = Settings.EmailPassword;
         private readonly string emailServerHost = Settings.EmailServerHost;
+        private readonly ILoggerService logger;
         private readonly SmtpClient emailClient;
         private bool disposed = false;
 
-        public GmailService()
+        public GmailService(ILoggerService logger)
         {
+            this.logger = logger;
             emailClient =  new SmtpClient(emailServerHost)
             {
                 Port = 587,
@@ -65,11 +67,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             try
             {
                 await SendEmailToAdminAsync("CongEspVilaGuilhermeApi is Starting...");
-                Console.WriteLine("[GmailService.CheckConnection] Gmail Conected Sucessfully!");
+                logger.Log("[GmailService.CheckConnection] Gmail Conected Sucessfully!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GmailService.CheckConnection] Error: " + ex.Message);
+                logger.Log("[GmailService.CheckConnection] Error: " + ex.Message);
             }
         }
 

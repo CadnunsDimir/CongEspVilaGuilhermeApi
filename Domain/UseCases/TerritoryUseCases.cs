@@ -9,13 +9,14 @@ public class TerritoryUseCases
 {
     private readonly ITerritoryRepository repository;
     private readonly ICacheService cache;
-
+    private readonly ILoggerService logger;
     private readonly TimeSpan CacheExpiration = TimeSpan.FromHours(1);
 
-    public TerritoryUseCases(ITerritoryRepository repository, ICacheService cache)
+    public TerritoryUseCases(ITerritoryRepository repository, ICacheService cache, ILoggerService logger)
     {
         this.repository = repository;
         this.cache = cache;
+        this.logger = logger;
     }
 
     public async Task<List<int>> GetCardsAsync()
@@ -23,7 +24,7 @@ public class TerritoryUseCases
         var data = await cache.GetAsync(nameof(repository.GetCardsAsync), async config =>{
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardsAsync();
-            Console.WriteLine("loading from db");
+            logger.Log("loading from db");
             return data ?? new List<int>();
         });
 
@@ -52,7 +53,7 @@ public class TerritoryUseCases
         var data = await cache.GetAsync(TerritoryCardCacheKey(id), async config =>{
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardAsync(id);
-            Console.WriteLine("loading from db");
+            logger.Log("loading from db");
             if(data == null)
                 throw new EntityNotFoundException<TerritoryCard>();
             return data;
