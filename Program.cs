@@ -12,7 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 Settings.LoadFromConfigFiles(builder.Configuration);
 
 var originAllowed = new string[]{
-    "localhost", "127.0.0.1", Settings.FrontAppHost
+    //TODO: create a appId header to test locally front aplications and insomnia
+
+    //uncomment below to test locally with front app
+    //"localhost", "127.0.0.1", 
+    Settings.FrontAppHost
 };
 
 builder.Services.AddCors(options =>
