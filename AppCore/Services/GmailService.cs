@@ -53,12 +53,13 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
 
         public async Task SendResetPassordEmailAsync(User user)
         {
+            logger.Log($"[GmailService] Enviando e-mail para: {user.Email} ({user.UserName})");
             await SendEmailAsync(new Email
             {
                 EmailAddress = user.Email,
                 Subject = "Reset de Senha Solicitado [CongEspVilaGuilherme]",
                 HtmlMessage = $"Usuário: {user.UserName}<br>" +
-                $"<a href=\"http://{Settings.FrontAppHost}/#/reset-password/{user.ResetPasswordId}\">Clique aqui</a>"
+                $"<a href=\"http://{Settings.FrontAppHost}/reset-password/{user.ResetPasswordId}\">Clique aqui</a>"
             });
         }
 
@@ -97,9 +98,19 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             if (email.SendCopyToAdmin)
             {                
                 mail.Bcc.Add(senderEmail);
-            }           
+            }
 
-            await emailClient.SendMailAsync(mail);
+            try
+            {
+                await emailClient.SendMailAsync(mail);
+            }
+            catch (SmtpException ex)
+            {
+                logger.Log($"[GmailService.SendEmailAsync] Error sending email to {email.EmailAddress}: {ex.Message}");
+                logger.Log(ex.ToString());
+                throw;
+            }
+                
         }
 
         protected virtual void Dispose(bool disposing)

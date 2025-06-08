@@ -8,7 +8,9 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
     {
         public void Log(string message)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")} - {message}");
+            //TODO: Fix to get São Paulo Timezone
+            var saoPauloDateTimeNow = DateTime.UtcNow.AddHours(-3);
+            Console.WriteLine($"{saoPauloDateTimeNow.ToString("dd/MM/yyyy HH:mm:ss")} - {message}");
         }
 
         public void Log(Exception exception)
