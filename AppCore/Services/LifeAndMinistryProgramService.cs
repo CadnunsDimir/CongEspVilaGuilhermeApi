@@ -1,20 +1,23 @@
 ﻿
+using CongEspVilaGuilhermeApi.AppCore.Enums;
 using CongEspVilaGuilhermeApi.AppCore.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Entities;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using HtmlAgilityPack;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace CongEspVilaGuilhermeApi.AppCore.Services
 {
     public class LifeAndMinistryProgramService
     {
-        private ILifeAndMinistryRepository repository;
-        private WebContentService browser;
-        private DateTime[] memorialWeeksMondays = new[] { 
-            new DateTime(2025, 04, 7),
-            new DateTime(2026, 03, 30),
-            new DateTime(2027, 03, 22),
+        private readonly ILifeAndMinistryRepository repository;
+        private readonly WebContentService browser;
+        private static readonly Dictionary<int, int> memorialWeeks = new Dictionary<int, int>()
+        {
+            { 2024,  82 },
+            { 2025,  87 },
+            { 2026,  85 },
         };
 
         public LifeAndMinistryProgramService(ILifeAndMinistryRepository repository)
@@ -24,11 +27,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         }
         public async Task<LifeAndMinistryWeek> GetProgramByDate(DateTime date)
         {
-            var weekId = getWeekId(date);
+            var weekId = GetWeekId(date);
             var entity = await repository.GetById(weekId);
-            if(entity == null)
+            if (entity == null)
             {
-                entity  = await BuildNew(weekId);
+                entity = await BuildNew(weekId);
                 await this.repository.CreateOrUpdate(entity);
             }
             return entity;
@@ -38,6 +41,10 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
         {
             var url = $"https://wol.jw.org/es/wol/d/r4/lp-s/20{weekId}";
             var html = await browser.GetAsync(url);
+            if (html == null)
+            {
+                throw new InvalidOperationException("Meeting not found on wol.jw.org");
+            }
 
             var asignments = html.SelectNodes("//h3").Select(x => x.InnerText).ToList();
             var times = GetTimeList(html);
@@ -59,14 +66,15 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
                 BibleReading = new LifeAndMinistryStudentsAsignment
                 {
                     Title = "3. Lectura de biblia",
-                    BrotherName = ""
+                    BrotherName = "",
+                    Minutes = 4
                 },
                 BecameBetterTeachers = bbt,
-                MiddleSong = Convert.ToInt32(getMiddleSongText(asignments).Replace("Canción", string.Empty).TrimStart()),
+                MiddleSong = Convert.ToInt32(GetMiddleSongText(asignments).Replace("Canción", string.Empty).TrimStart()),
                 OurChristianLife = BuildOurChristianLife(asignments, times, bbt.Count),
                 CongregationBibleStudy = new LifeAndMinistryBibleStudy
                 {
-                    Title = getBiblyStudy(asignments) ?? string.Empty,
+                    Title = GetBiblyStudy(asignments) ?? string.Empty,
                     BrotherName = string.Empty,
                     Reader = string.Empty,
                     Minutes = 30
@@ -75,46 +83,52 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             };
         }
 
-        private int GetEndingSong(List<string> asignments)
+        private static int GetEndingSong(List<string> asignments)
         {
             int.TryParse((asignments.FirstOrDefault(x => x.Contains("Palabras de conclusión")) ?? string.Empty).Split(" | ")[1].Split(" ")[1], out int endingSong);
             return endingSong;
         }
 
-        private List<int> GetTimeList(HtmlNode html)
+        private static List<int> GetTimeList(HtmlNode html)
         {
             return html.SelectNodes("//div[contains(@class, 'bodyTxt')] //div //p")
                 .Where(x => x.InnerText.Contains("mins"))
-                .Select(x => Convert.ToInt32(x.InnerText.Split(" mins.)").FirstOrDefault() ?? "0".Replace("(", "")))
-                .ToList();
+                .Select(x =>
+                {
+                    var min = Regex.Replace(
+                        x.InnerText.Split(".)").FirstOrDefault() ?? string.Empty, "[^0-9]", "");
+                    var minOut = 0;
+                    int.TryParse(min, out minOut);
+                    return minOut;
+                }).ToList();
         }
 
         private List<LifeAndMinistryAsignment> BuildOurChristianLife(List<string> asignments, List<int> minutesList, int becameBetterTeachersCount)
         {
-            var initialIndex = asignments.IndexOf(getMiddleSongText(asignments)) + 1;
-            var finalIndex = asignments.IndexOf(getBiblyStudy(asignments)) - 1;
+            var initialIndex = asignments.IndexOf(GetMiddleSongText(asignments)) + 1;
+            var finalIndex = asignments.IndexOf(GetBiblyStudy(asignments)) - 1;
             var initialIndexMinutes = becameBetterTeachersCount + 3;
             var minutes = minutesList.Where((_, i) => i >= initialIndexMinutes).ToList();
 
             return FilterAndBuildAsignmeny(asignments, minutes, initialIndex, finalIndex);
         }
 
-        private string getMiddleSongText(List<string> asignments) => asignments.Where(x => x.StartsWith("Canción")).ToList()[1];
-        private string getBiblyStudy(List<string> asignments) => asignments.FirstOrDefault(x => x.Contains("Estudio bíblico de la congregación")) ?? string.Empty;
+        private static string GetMiddleSongText(List<string> asignments) => asignments.Where(x => x.StartsWith("Canción")).ToList()[1];
+        private static string GetBiblyStudy(List<string> asignments) => asignments.FirstOrDefault(x => x.Contains("Estudio bíblico de la congregación")) ?? string.Empty;
 
         private List<LifeAndMinistryStudentsAsignment> BuildBecameBetterTeachers(List<string> asignments, List<int> minutesList)
         {
             var initialIndex = asignments.IndexOf(asignments.FirstOrDefault(x => x.StartsWith("4.")) ?? string.Empty);
-            var finalIndex = asignments.IndexOf(asignments.Where(x => x.StartsWith("Canción")).ToList()[1]) -1;
+            var finalIndex = asignments.IndexOf(asignments.Where(x => x.StartsWith("Canción")).ToList()[1]) - 1;
 
             var finalIndexMinutes = (finalIndex - initialIndex + 1) + 3;
             var minutes = minutesList.Where((_, i) => i >= 3 && i <= finalIndexMinutes).ToList();
 
-            return FilterAndBuildAsignmeny(asignments, minutes, initialIndex, finalIndex).Select(x => new LifeAndMinistryStudentsAsignment 
-            {  
-               BrotherName = x.BrotherName,
-               Title = x.Title,
-               Minutes = x.Minutes
+            return FilterAndBuildAsignmeny(asignments, minutes, initialIndex, finalIndex).Select(x => new LifeAndMinistryStudentsAsignment
+            {
+                BrotherName = x.BrotherName,
+                Title = x.Title,
+                Minutes = x.Minutes
             }).ToList();
         }
 
@@ -128,13 +142,17 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             }).ToList();
         }
 
-        private string getWeekId(DateTime date)
+        private static string GetWeekId(DateTime date)
         {
-            var week = 1;
-            var edition = 0;
-            var month = date.Month % 2 == 1 ? date.Month : date.Month - 1;
-            
-            var firstMondayOfEdition = new DateTime(date.Year, month, 1);
+            var thisWeekMonday = date;
+            while (thisWeekMonday.DayOfWeek != DayOfWeek.Monday)
+            {
+                thisWeekMonday = thisWeekMonday.AddDays(-1);
+            }
+            int editionWeek = (int)LifeAndMinistryProgramEdition.JanuaryEdition;
+            var month = thisWeekMonday.Month % 2 == 1 ? thisWeekMonday.Month : thisWeekMonday.Month - 1;
+
+            var firstMondayOfEdition = new DateTime(thisWeekMonday.Year, month, 1, 0, 0, 0, DateTimeKind.Local);
             while (firstMondayOfEdition.DayOfWeek != DayOfWeek.Monday)
             {
                 firstMondayOfEdition = firstMondayOfEdition.AddDays(1);
@@ -144,43 +162,38 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             {
                 case 3:
                 case 4:
-                    edition = 8;
+                    editionWeek = (int)LifeAndMinistryProgramEdition.MarchEdition;
                     break;
                 case 5:
                 case 6:
-                    edition = 16;
+                    editionWeek = (int)LifeAndMinistryProgramEdition.MayEdition;
                     break;
                 case 7:
                 case 8:
-                    edition = 24;
+                    editionWeek = (int)LifeAndMinistryProgramEdition.JulyEdition;
                     break;
                 case 9:
                 case 10:
-                    edition = 32;
+                    editionWeek = (int)LifeAndMinistryProgramEdition.SeptemberEdition;
                     break;
                 case 11:
                 case 12:
-                    edition = 40;
+                    editionWeek = (int)LifeAndMinistryProgramEdition.NovemberEdition;
                     break;
             }
 
-            while (firstMondayOfEdition <= date)
+            while (firstMondayOfEdition < thisWeekMonday)
             {
-                week++;
+                editionWeek++;
                 //ignorando a semana da comemoração
-                if (memorialWeeksMondays.Any(x => x == firstMondayOfEdition))
+                if (memorialWeeks[thisWeekMonday.Year] == editionWeek)
                 {
-                    week++;
-                }
-                if(week == 10)
-                {
-                    week = 0;
-                    edition++;
+                    editionWeek++;
                 }
                 firstMondayOfEdition = firstMondayOfEdition.AddDays(7);
             }
 
-            return $"{firstMondayOfEdition.Year}{edition.ToString("00")}{week}";
+            return $"{firstMondayOfEdition.Year}{editionWeek:000}";
         }
 
         public Task UpdateWeek(LifeAndMinistryWeek week)
