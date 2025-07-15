@@ -35,8 +35,11 @@ namespace CongEspVilaGuilhermeApi.AppCore.Services
             await SendEmailAsync(new Email
             {
                 EmailAddress = user.Email,
-                Subject = "Nova Usuario Criado [CongEspVilaGuilherme]",
-                MultiLineMessage = $"O usuário '{user.UserName}' foi criado com sucesso. agora você acessar o sistema com acesso basico (Apenas Leitura)",
+                Subject = "Novo Usuario Criado [CongEspVilaGuilherme]",
+                HtmlMessage = @$"O usuário '{user.UserName}' 
+                foi criado com sucesso. agora você acessar o sistema com acesso basico (Apenas Leitura) <br/>
+                Solicite ao Admin que adicione as devidas permissões
+                <a href='http://{Settings.FrontAppHost}'>Link do portal</a>",
                 SendCopyToAdmin = true
             });
         }
