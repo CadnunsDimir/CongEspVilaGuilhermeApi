@@ -22,13 +22,13 @@ jobs:
         script: |
 
           echo 'Set Secret Values'
-          export Email__Password='${{ secrets.EMAIL__PASSWORD }}'
-          export Email__Host='${{ secrets.EMAIL__HOST }}'
-          export Email__Address='${{ secrets.EMAIL__ADDRESS }}'
-          export DynamoDB__secretKey='${{ secrets.DYNAMODB__SECRETKEY }}'
-          export DynamoDB__accessKey='${{ secrets.DYNAMODB__ACCESSKEY }}'
-          export Auth__TokenSecret='${{ secrets.AUTH__TOKENSECRET }}'
-          export Auth__PasswordHashSecret='${{ secrets.AUTH__PASSWORDHASHSECRET }}'
+          export Email_Password='${{ secrets.EMAIL__PASSWORD }}'
+          export Email_Host='${{ secrets.EMAIL__HOST }}'
+          export Email_Address='${{ secrets.EMAIL__ADDRESS }}'
+          export DynamoDB_secretKey='${{ secrets.DYNAMODB__SECRETKEY }}'
+          export DynamoDB_accessKey='${{ secrets.DYNAMODB__ACCESSKEY }}'
+          export Auth_TokenSecret='${{ secrets.AUTH__TOKENSECRET }}'
+          export Auth_PasswordHashSecret='${{ secrets.AUTH__PASSWORDHASHSECRET }}'
           export FrontAppHost='${{ secrets.FRONTAPPHOST }}'
           export TsvUrl='${{ secrets.TSVURL }}'
 
