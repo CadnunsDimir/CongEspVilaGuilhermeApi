@@ -131,6 +131,7 @@ public class TerritoryUseCases
         await cache.Clear(nameof(repository.GetFullMapMarkers));
         await cache.Clear(nameof(repository.GetCardsToFixCoordinates));
         await cache.Clear(nameof(repository.CountAllDirections));
+        await cache.Clear(nameof(getCardsCoodinatesAsync));
     }
 
     public async Task MoveDirections(DirectionsExchange move)
@@ -177,9 +178,27 @@ public class TerritoryUseCases
             throw new EntityNotFoundException<TerritoryCard>();
     }
 
-    // public async Task<List<TerritoryCenterCoordinates>> getCardsCoodinates()
-    // {
-    //     var cards = await this.repository.GetAll();
-    //     return 
-    // }
+    public async Task<List<TerritoryCenterCoordinates>> getCardsCoodinatesAsync()
+    {
+
+        var data = await cache.GetAsync(nameof(getCardsCoodinatesAsync), async config =>
+        {
+            config.SlidingExpiration = CacheExpiration;
+
+            var cards = await this.repository.GetAll();
+            logger.Log("loading from db");
+            return cards.Select(c =>
+                {
+                    var cardLat = c.Directions.Average(x => x.Lat) ?? 0;
+                    var cardLong = c.Directions.Average(x => x.Long) ?? 0;
+                    return new TerritoryCenterCoordinates(c.CardId, cardLat, cardLong);
+                })
+                .Where(x => Math.Abs(x.Lat) > 1e-6 && Math.Abs(x.Long) > 1e-6)
+                .ToList();
+        });
+
+        return data!;
+
+        
+    }
 }

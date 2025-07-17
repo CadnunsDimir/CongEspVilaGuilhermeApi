@@ -28,6 +28,10 @@ namespace CongEspVilaGuilhermeApi.Controllers
         [HttpGet]
         [Authorize(Roles = nameof(RoleTypes.TerritoryServant))]
         public Task<List<int>> Index() => useCases.GetCardsAsync();
+        
+        [HttpGet("cards_center")]
+        public Task<List<TerritoryCenterCoordinates>> CardsCenterCoordinates() => useCases.getCardsCoodinatesAsync();
+        
 
         [HttpGet("{id}")]
         public Task<TerritoryCard?> Details(int id) => useCases.GetCardAsync(id);
