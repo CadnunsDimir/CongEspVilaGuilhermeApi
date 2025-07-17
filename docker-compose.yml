@@ -1,6 +1,6 @@
 services:
   dotnet-api:
-    build: ./CongEspVilaGuilhermeApi
+    build: .
     container_name: cong-esp-vila-guilherme-api
     restart: always
     environment:
