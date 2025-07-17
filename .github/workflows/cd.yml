@@ -32,11 +32,15 @@ jobs:
           echo 'Stop server...'
           screen -XS "cong-esp-api" kill
           screen -ls
+          sleep 5
+          echo 'Starting server...'
+          screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
           
+          sleep 5
+          screen -ls
+
           sleep 5
           echo 'Publish on Docker and restart'
           docker compose up -d --build
-
-          sleep 5
-          screen -ls
+          
           echo 'Sucessfully Published!'
