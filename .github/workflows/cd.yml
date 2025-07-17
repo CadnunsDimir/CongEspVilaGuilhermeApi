@@ -39,17 +39,18 @@ jobs:
           echo 'Update data...'
           git pull
           git status
-          sleep 5
-
-          echo 'Stop server...'
-          screen -XS "cong-esp-api" kill
-          screen -ls
-          sleep 5
-          echo 'Starting server...'
+          
+          ## enable if docker not installed
+          # sleep 5
+          # echo 'Stop server...'
+          # screen -XS "cong-esp-api" kill
+          # screen -ls
+          # sleep 5
+          # echo 'Starting server...'
           # screen -S cong-esp-api -d -m dotnet run --urls=http://*:8081
           
-          sleep 5
-          screen -ls
+          # sleep 5
+          # screen -ls
 
           sleep 5
           echo 'Publish on Docker and restart'
