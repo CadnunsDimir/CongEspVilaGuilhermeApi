@@ -1,0 +1,22 @@
+services:
+  dotnet-api:
+    build: ./CongEspVilaGuilhermeApi
+    container_name: cong-esp-vila-guilherme-api
+    restart: always
+    environment:
+      Email__Password: ${Email_Password}
+      Email__Host: ${Email_Host}
+      Email__Address: ${Email_Address}
+      DynamoDB__secretKey: ${DynamoDB_secretKey}
+      DynamoDB__accessKey: ${DynamoDB_accessKey}
+      Auth__TokenSecret: ${Auth_TokenSecret}
+      Auth__PasswordHashSecret: ${Auth_PasswordHashSecret}
+      FrontAppHost: ${FrontAppHost}
+      TsvUrl: ${TsvUrl}
+    networks:
+      - cong-esp-vila-guilherme-network
+    ports:
+      - 8081:8080
+networks:
+  cong-esp-vila-guilherme-network:
+    external: true
