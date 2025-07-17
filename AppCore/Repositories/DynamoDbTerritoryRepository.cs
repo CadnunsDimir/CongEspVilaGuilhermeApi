@@ -17,7 +17,7 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         public override TerritoryCardMapper mapper => new TerritoryCardMapper();
         private readonly string cardIdKey = TerritoryCardMapper.Keys.CardId;
         private readonly string shareIdKey = TerritoryCardMapper.Keys.ShareId;
-        private ILoggerService logger;
+        private readonly ILoggerService logger;
 
         public DynamoDbTerritoryRepository(ILoggerService logger)
         {

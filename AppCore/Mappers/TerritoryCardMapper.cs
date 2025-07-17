@@ -8,15 +8,14 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
 {
     public class TerritoryCardMapper : IDynamoDbEntityMapper<TerritoryCard>
     {
-        public class Keys
+        public static class Keys
         {
             public static readonly string CardId = "card_id";
             internal static readonly string Neighborhood = "neighborhood";
             internal static readonly string Directions  = "directions";
             internal static readonly string IsDeleted = "is_deleted";
             internal static readonly string ShareId = "share_id";
-
-            public static string DirectionsCount = "directions_count";
+            public static readonly string DirectionsCount = "directions_count";
         }
 
         public Document ToDynamoDocument(TerritoryCard card)    
@@ -29,15 +28,15 @@ namespace CongEspVilaGuilhermeApi.Services.Mappers
             return document;
         }
 
-        public TerritoryCard ToEntity(Document document) => new TerritoryCard
+        public TerritoryCard ToEntity(Document result) => new TerritoryCard
         {
-            CardId = MapCardId(document),
-            Neighborhood = document[Keys.Neighborhood],
-            Directions = MapDirections(document)
+            CardId = MapCardId(result),
+            Neighborhood = result[Keys.Neighborhood],
+            Directions = MapDirections(result)
         };
 
-        public int MapCardId(Document document) => Convert.ToInt32(document[Keys.CardId]);
-        public List<Direction> MapDirections(Document document) => JsonConvert.DeserializeObject<List<Direction>>(document[Keys.Directions].AsString()) ?? new List<Direction>();
+        public static int MapCardId(Document document) => Convert.ToInt32(document[Keys.CardId]);
+        public static List<Direction> MapDirections(Document document) => JsonConvert.DeserializeObject<List<Direction>>(document[Keys.Directions].AsString()) ?? new List<Direction>();
 
         public List<TerritoryMapMarkers> ToMapMarkers(List<Document> documentList)
         {

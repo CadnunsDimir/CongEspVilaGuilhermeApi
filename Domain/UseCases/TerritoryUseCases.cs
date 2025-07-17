@@ -3,8 +3,11 @@ using CongEspVilaGuilhermeApi.Domain.Exceptions;
 using CongEspVilaGuilhermeApi.Domain.Models;
 using CongEspVilaGuilhermeApi.Domain.Repositories;
 using CongEspVilaGuilhermeApi.Domain.Services;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CongEspVilaGuilhermeApi.Domain.UseCases;
+
 public class TerritoryUseCases
 {
     private readonly ITerritoryRepository repository;
@@ -21,7 +24,8 @@ public class TerritoryUseCases
 
     public async Task<List<int>> GetCardsAsync()
     {
-        var data = await cache.GetAsync(nameof(repository.GetCardsAsync), async config =>{
+        var data = await cache.GetAsync(nameof(repository.GetCardsAsync), async config =>
+        {
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardsAsync();
             logger.Log("loading from db");
@@ -31,7 +35,8 @@ public class TerritoryUseCases
         return data!;
     }
 
-    public async Task Create(TerritoryCard card){
+    public async Task Create(TerritoryCard card)
+    {
         var errors = card.CheckErrors();
         if (errors.Length > 0)
             throw new DomainEntityException(errors);
@@ -50,11 +55,12 @@ public class TerritoryUseCases
 
     public async Task<TerritoryCard?> GetCardAsync(int id)
     {
-        var data = await cache.GetAsync(TerritoryCardCacheKey(id), async config =>{
+        var data = await cache.GetAsync(TerritoryCardCacheKey(id), async config =>
+        {
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardAsync(id);
             logger.Log("loading from db");
-            if(data == null)
+            if (data == null)
                 throw new EntityNotFoundException<TerritoryCard>();
             return data;
         });
@@ -90,25 +96,29 @@ public class TerritoryUseCases
 
     public async Task<FullMap> GetFullMap()
     {
-        var data = await cache.GetAsync(nameof(repository.GetFullMapMarkers), async config => {
+        var data = await cache.GetAsync(nameof(repository.GetFullMapMarkers), async config =>
+        {
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetFullMapMarkers();
             return data;
         });
 
-        var count = await cache.GetAsync(nameof(repository.CountAllDirections), async config => {
+        var count = await cache.GetAsync(nameof(repository.CountAllDirections), async config =>
+        {
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.CountAllDirections();
             return data.ToString();
         });
 
-        var cardsToCheck = await cache.GetAsync(nameof(repository.GetCardsToFixCoordinates), async config => {
+        var cardsToCheck = await cache.GetAsync(nameof(repository.GetCardsToFixCoordinates), async config =>
+        {
             config.SlidingExpiration = CacheExpiration;
             var data = await repository.GetCardsToFixCoordinates();
             return data;
         });
 
-        return new FullMap {
+        return new FullMap
+        {
             MapMarkers = data!,
             TotalAdresses = Convert.ToInt32(count),
             CheckCoordinatesOnCards = cardsToCheck!
@@ -130,12 +140,12 @@ public class TerritoryUseCases
 
         CheckCardsNotNull(originCard, destinationCard);
 
-        var directionMoved = ExecuteDirectionMovement(originCard!, destinationCard!, move);        
+        var directionMoved = ExecuteDirectionMovement(originCard!, destinationCard!, move);
 
         if (directionMoved)
         {
             await repository.UpdateMany(destinationCard!, originCard!);
-            await ClearCacheCards(move);            
+            await ClearCacheCards(move);
         }
     }
 
@@ -145,23 +155,31 @@ public class TerritoryUseCases
         await cache.Clear(TerritoryCardCacheKey(move.DestinationCardId));
     }
 
-    private bool ExecuteDirectionMovement(TerritoryCard originCard, TerritoryCard destinationCard, DirectionsExchange move)
+    private static bool ExecuteDirectionMovement(TerritoryCard originCard, TerritoryCard destinationCard, DirectionsExchange move)
     {
         var directionMoved = false;
-        foreach (var direction in move.Directions)
+        var filtered = from direction in move.Directions
+                       where originCard.HasDirection(direction)
+                       select direction;
+
+        foreach (var direction in filtered)
         {
-            if (originCard.HasDirection(direction))
-            {
-                originCard.MoveTo(direction, destinationCard);
-                directionMoved = true;
-            }
+            originCard.MoveTo(direction, destinationCard);
+            directionMoved = true;
         }
+
         return directionMoved;
     }
 
-    private void CheckCardsNotNull(TerritoryCard? originCard, TerritoryCard? destinationCard)
+    private static void CheckCardsNotNull(TerritoryCard? originCard, TerritoryCard? destinationCard)
     {
         if (originCard == null || destinationCard == null)
             throw new EntityNotFoundException<TerritoryCard>();
     }
+
+    // public async Task<List<TerritoryCenterCoordinates>> getCardsCoodinates()
+    // {
+    //     var cards = await this.repository.GetAll();
+    //     return 
+    // }
 }
