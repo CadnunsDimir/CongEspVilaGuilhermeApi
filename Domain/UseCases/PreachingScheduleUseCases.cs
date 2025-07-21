@@ -27,11 +27,19 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
         {
             var currentMonthHolidays = holidaysRepository.GetHolidays(monthYear.Month, monthYear.Year);
 
+            var updatedSpecialDays = specialPreachingDaysRepository.GetSpecialDaysByMonth(monthYear.Month, monthYear.Year);
+
             var specialDays = currentMonthHolidays.Select(d =>
             {
                 var date = new DateTime(monthYear.Year, monthYear.Month, d.dayOfMonth, 0, 0, 0, DateTimeKind.Local);
-                var savedSpecialDay = specialPreachingDaysRepository.GetSpecialDayByDate(date);
-                return savedSpecialDay ?? new SpecialPreachingDay
+                var savedSpecialDay = updatedSpecialDays.FirstOrDefault(x=> x.Date.Day == date.Day);
+                if (savedSpecialDay != null)
+                {
+                    updatedSpecialDays.Remove(savedSpecialDay);
+                    return savedSpecialDay;
+                }
+
+                return new SpecialPreachingDay
                 {
                     Date = DateOnly.FromDateTime(date),
                     FieldOverseer = "",
@@ -44,10 +52,12 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
                 };
             }).ToList();
 
+            specialDays.AddRange(updatedSpecialDays);
+
             return new PreachingSchedule
             {
                 FixedPreachingDays = repository.GetAllFixedPreachingDays(),
-                SpecialDays = specialDays
+                SpecialDays = specialDays.OrderBy(x=>x.Date).ToList()
             };
         }
 

@@ -10,5 +10,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
     {
         void createOrUpdate(SpecialPreachingDay specialPreachingDay);
         SpecialPreachingDay? GetSpecialDayByDate(DateTime today);
+        List<SpecialPreachingDay> GetSpecialDaysByMonth(int month, int year);
     }
 }

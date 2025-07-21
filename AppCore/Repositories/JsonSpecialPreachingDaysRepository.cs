@@ -17,12 +17,16 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 
         public SpecialPreachingDay? GetSpecialDayByDate(DateTime today)
         {
+            updateCache();
+            return specialPreachingDaysCache.FirstOrDefault(x => x.Date == DateOnly.FromDateTime(today));
+        }
+
+        private void updateCache()
+        {
             if (specialPreachingDaysCache.Count == 0)
             {
                 specialPreachingDaysCache.AddRange(GetAllSpecialDays());
             }
-
-            return specialPreachingDaysCache.FirstOrDefault(x => x.Date == DateOnly.FromDateTime(today));
         }
 
         public void createOrUpdate(SpecialPreachingDay specialPreachingDay)
@@ -38,6 +42,14 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         {
             return loadFileService.LoadFileAsJson<List<SpecialPreachingDay>>(sprecialDaysFile) ??
                 new List<SpecialPreachingDay>();
+        }
+
+        public List<SpecialPreachingDay> GetSpecialDaysByMonth(int month, int year)
+        {
+            updateCache();
+            return this.specialPreachingDaysCache
+                .Where(x => x.Date.Year == year && x.Date.Month == month)
+                .ToList();
         }
     }
 }
