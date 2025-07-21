@@ -7,6 +7,9 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
     class JsonPreachingScheduleRepository : IPreachingScheduleRepository
     {
         private readonly LoadFileService loadFileService;
+        private readonly String preachingScheduleJsonFile = "PreachingSchedule.json";
+        private readonly String specialDaysFile = "SpecialDaysSchedule.json";
+        private readonly List<SpecialPreachingDay> specialPreachingDaysCache = new List<SpecialPreachingDay>();
 
         public JsonPreachingScheduleRepository(LoadFileService loadFileService)
         {
@@ -14,10 +17,20 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
         }
         public List<FixedPreachingDay> GetAllFixedPreachingDays()
         {
-            return loadFileService.LoadFileAsJson<List<FixedPreachingDay>>("PreachingSchedule.json") ?? new List<FixedPreachingDay>();
+            return loadFileService.LoadFileAsJson<List<FixedPreachingDay>>(preachingScheduleJsonFile) ?? new List<FixedPreachingDay>();
         }
 
-        public void RegisterFixedPreachingDay(FixedPreachingDay fixedPreachingDay)
+        public SpecialPreachingDay? GetSpecialDayByDate(DateTime today)
+        {
+            if (specialPreachingDaysCache.Count == 0)
+            {
+                specialPreachingDaysCache.AddRange(GetAllSpecialDays());
+            }
+
+            return specialPreachingDaysCache.FirstOrDefault(x => x.Date == DateOnly.FromDateTime(today));
+        }
+
+        public void createOrUpdate(FixedPreachingDay fixedPreachingDay)
         {
             var fixedPreachingDays = GetAllFixedPreachingDays();
             fixedPreachingDays.RemoveAll(x => x.Id == fixedPreachingDay.Id);
@@ -30,12 +43,22 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
             fixedPreachingDays.Add(fixedPreachingDay);
             fixedPreachingDays = fixedPreachingDays.OrderBy(x => x.DayOfWeek).ThenBy(x => x.Hour).ToList();
 
-            loadFileService.SaveFileAsJson("PreachingSchedule.json", fixedPreachingDays);
+            loadFileService.SaveFileAsJson(preachingScheduleJsonFile, fixedPreachingDays);
         }
 
-        public void RegisterSpecialPreachingDay(SpecialPreachingDay fixedDay)
+        public void RegisterSpecialPreachingDay(SpecialPreachingDay specialPreachingDay)
         {
-            throw new NotImplementedException();
+            var allItens = GetAllSpecialDays();
+            allItens.RemoveAll(x => x.Date == specialPreachingDay.Date);
+            allItens.Add(specialPreachingDay);
+            allItens = allItens.OrderBy(x => x.Date).ToList();
+            loadFileService.SaveFileAsJson(specialDaysFile, allItens);
+        }
+
+        private List<SpecialPreachingDay> GetAllSpecialDays()
+        {
+            return loadFileService.LoadFileAsJson<List<SpecialPreachingDay>>(specialDaysFile) ??
+                new List<SpecialPreachingDay>();
         }
     }
 }

@@ -8,13 +8,13 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         /// Registra os dias fixos de pregação.
         /// </summary>
         /// <param name="fixedPreachingDay"dia fixo para pregação.</param>
-        void RegisterFixedPreachingDay(FixedPreachingDay fixedPreachingDay);
+        void createOrUpdate(FixedPreachingDay fixedPreachingDay);
 
         /// <summary>
         /// Obtém todos os dias fixos de pregação.
         /// </summary>
         /// <returns>Lista contendo os dias fixos</returns>
         List<FixedPreachingDay> GetAllFixedPreachingDays();
-        void RegisterSpecialPreachingDay(SpecialPreachingDay fixedDay);
+        
     }
 }

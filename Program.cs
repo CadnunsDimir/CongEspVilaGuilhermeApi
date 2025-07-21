@@ -49,11 +49,15 @@ builder.Services.AddScoped<TerritoryRepositoryValidationService>();
 builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<TerritoryUseCases>();
 builder.Services.AddScoped<UserUseCases>();
+builder.Services.AddScoped<PreachingScheduleUseCases>();
 builder.Services.AddScoped<OnlineTsvSyncService>();
 builder.Services.AddScoped<LifeAndMinistryProgramService>();
 builder.Services.AddScoped<ILifeAndMinistryRepository, LifeAndMinistryDynamoDbRepository>();
 builder.Services.AddScoped<LoadFileService>();
 builder.Services.AddScoped<IPreachingScheduleRepository, JsonPreachingScheduleRepository>();
+builder.Services.AddScoped<ISpecialPreachingDaysRepository, JsonSpecialPreachingDaysRepository>();
+builder.Services.AddScoped<IHolidaysRepository, HolidayRepository>();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
