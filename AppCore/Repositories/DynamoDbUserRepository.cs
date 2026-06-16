@@ -58,5 +58,24 @@ namespace CongEspVilaGuilhermeApi.AppCore.Repositories
 
             return line.Count == 0;
         }
+
+        public async Task<List<User>> List()
+        {
+            var request = new QueryRequest
+            {
+                TableName = tableName,
+                KeyConditionExpression = $"{Keys.internalId} = :k_id",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":k_id", new AttributeValue { N =  "0" }}
+                }
+            };
+
+            var line = await Client.QueryAsync(request);
+            return line.Items
+               .Select(Document.FromAttributeMap)
+               .Select(mapper.ToEntity)
+               .ToList();
+        }
     }
 }

@@ -26,6 +26,14 @@ namespace CongEspVilaGuilhermeApi.Controllers
             this.useCases = useCases;
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<List<UserListItem>> ListUser()
+        {
+            var users = await useCases.ListUsers();
+            return users;
+        }
+
         [HttpPost]
         public async Task<ObjectResult> Post(NewAccount newAccount)
         {

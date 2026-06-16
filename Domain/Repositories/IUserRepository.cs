@@ -8,5 +8,6 @@ namespace CongEspVilaGuilhermeApi.Domain.Repositories
         Task Create(User user);
         Task Update(User user);
         Task<bool> UserNameIsAvailable(string userName);
+        Task<List<User>> List();
     }
 }

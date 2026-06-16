@@ -115,5 +115,16 @@ namespace CongEspVilaGuilhermeApi.Domain.UseCases
 
             return TransactionEntityStatus.NotUpdated;
         }
+
+        internal async Task<List<UserListItem>> ListUsers()
+        {
+            var users = await repository.List();
+            return users.Select(x=> new UserListItem
+            {
+                Email = x.Email,
+                Roles = x.Role.Split(",").ToArray(),
+                UserName = x.UserName
+            }).ToList();
+        }
     }
 }
